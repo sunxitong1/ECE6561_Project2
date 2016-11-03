@@ -1,5 +1,8 @@
 hello_posix/Debug/
-hello_posix/.settings/
-hello_posix/.launches/
+*/.settings/
+*/.launches/
+*/.config
+*/Debug/
 .metadata/
 /RemoteSystemsTempFiles/
+*/README.html
