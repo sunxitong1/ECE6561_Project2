@@ -40,23 +40,28 @@
 /* BIOS Header files */
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Task.h>
+#include <ti/sysbios/knl/Semaphore.h>
 
 /* TI-RTOS Header files */
 #include <ti/drivers/GPIO.h>
-// #include <ti/drivers/I2C.h>
-// #include <ti/drivers/SDSPI.h>
-// #include <ti/drivers/SPI.h>
-// #include <ti/drivers/UART.h>
-// #include <ti/drivers/Watchdog.h>
-// #include <ti/drivers/WiFi.h>
+#include <ti/drivers/PWM.h>
 
 /* Board Header file */
 #include "Board.h"
 
+/* Application Includes */
+#include "motor_control.h"
+
+
 #define TASKSTACKSIZE   512
 
 Task_Struct task0Struct;
+Task_Struct task1Struct;
 Char task0Stack[TASKSTACKSIZE];
+Char task1Stack[TASKSTACKSIZE];
+
+Semaphore_Struct sem0Struct;
+Semaphore_Handle sem0Handle;
 
 /*
  *  ======== heartBeatFxn ========
@@ -68,6 +73,7 @@ Void heartBeatFxn(UArg arg0, UArg arg1)
     while (1) {
         Task_sleep((UInt)arg0);
         GPIO_toggle(Board_LED0);
+        Semaphore_post(sem0Handle);
     }
 }
 
@@ -77,16 +83,17 @@ Void heartBeatFxn(UArg arg0, UArg arg1)
 int main(void)
 {
     Task_Params taskParams;
+    Semaphore_Params semParams;
 
     /* Call board init functions */
     Board_initGeneral();
     Board_initGPIO();
-    // Board_initI2C();
-    // Board_initSDSPI();
-    // Board_initSPI();
-    // Board_initUART();
-    // Board_initWatchdog();
-    // Board_initWiFi();
+    Board_initPWM();
+
+    /* Construct a Semaphore object to be used as a resource lock, inital count 0 */
+	Semaphore_Params_init(&semParams);
+	Semaphore_construct(&sem0Struct, 0, &semParams);
+	sem0Handle = Semaphore_handle(&sem0Struct);
 
     /* Construct heartBeat Task  thread */
     Task_Params_init(&taskParams);
@@ -94,6 +101,13 @@ int main(void)
     taskParams.stackSize = TASKSTACKSIZE;
     taskParams.stack = &task0Stack;
     Task_construct(&task0Struct, (Task_FuncPtr)heartBeatFxn, &taskParams, NULL);
+
+    /* Construct heartBeat Task  thread */
+    Task_Params_init(&taskParams);
+    taskParams.arg0 = (UArg) sem0Handle;
+    taskParams.stackSize = TASKSTACKSIZE;
+    taskParams.stack = &task1Stack;
+    Task_construct(&task1Struct, (Task_FuncPtr)motoControlFxn, &taskParams, NULL);
 
     /* Turn on user LED */
     GPIO_write(Board_LED0, Board_LED_ON);
