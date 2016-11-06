@@ -196,6 +196,10 @@ GPIO_PinConfig gpioPinConfigs[] = {
     /* MSP_EXP432P401R_LED_RED */
     GPIOMSP432_P2_0 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,
 
+	/* Motor Encoder Pins */
+	GPIOMSP432_P6_6 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,
+	GPIOMSP432_P6_7 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,
+
     /*
      * MSP_EXP432P401R_LED_GREEN & MSP_EXP432P401R_LED_BLUE are used for
      * PWM examples.  Uncomment the following lines if you would like to control
@@ -218,7 +222,11 @@ GPIO_CallbackFxn gpioCallbackFunctions[] = {
     /* MSP_EXP432P401R_S1 */
     NULL,
     /* MSP_EXP432P401R_S2 */
-    NULL
+    NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 const GPIOMSP432_Config GPIOMSP432_config = {
