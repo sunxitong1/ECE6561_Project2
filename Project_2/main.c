@@ -41,6 +41,7 @@
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Task.h>
 #include <ti/sysbios/knl/Semaphore.h>
+#include <ti/sysbios/knl/Clock.h>
 
 /* TI-RTOS Header files */
 #include <ti/drivers/GPIO.h>
@@ -51,31 +52,39 @@
 
 /* Application Includes */
 #include "motor_control.h"
+#include "sensor_suite.h"
 
+#define SAMPLING_RATE_US	50000
+#define PATHING_PERIOD_US	500000
 
-#define TASKSTACKSIZE   512
+#define TASKSTACKSIZE   	512
+
 
 Task_Struct task0Struct;
 Task_Struct task1Struct;
+Task_Struct task2Struct;
+Task_Struct task3Struct;
 Char task0Stack[TASKSTACKSIZE];
 Char task1Stack[TASKSTACKSIZE];
+Char task2Stack[TASKSTACKSIZE];
+Char task3Stack[TASKSTACKSIZE];
 
 Semaphore_Struct sem0Struct;
 Semaphore_Handle sem0Handle;
+Semaphore_Struct SampSemStruct;
+Semaphore_Handle SampSemHandle;
+Semaphore_Struct pathSemStruct;
+Semaphore_Handle pathSemHandle;
 
-/*
- *  ======== heartBeatFxn ========
- *  Toggle the Board_LED0. The Task_sleep is determined by arg0 which
- *  is configured for the heartBeat Task instance.
- */
-Void heartBeatFxn(UArg arg0, UArg arg1)
-{
-    while (1) {
-        Task_sleep((UInt)arg0);
-        GPIO_toggle(Board_LED0);
-        Semaphore_post(sem0Handle);
-    }
-}
+
+Clock_Struct clk0Struct;
+Clock_Struct clk1Struct;
+
+
+Void heartBeatFxn(UArg arg0, UArg arg1);
+Void clk0Fxn(UArg arg0);
+Void clk1Fxn(UArg arg0);
+
 
 /*
  *  ======== main ========
@@ -84,16 +93,33 @@ int main(void)
 {
     Task_Params taskParams;
     Semaphore_Params semParams;
+    Clock_Params clkParams;
 
     /* Call board init functions */
     Board_initGeneral();
     Board_initGPIO();
     Board_initPWM();
 
-    /* Construct a Semaphore object to be used as a resource lock, inital count 0 */
+    /* Install Encoder callbacks */
+    GPIO_setCallback(Motor_Encoder_0, motorEncIntHandler0);
+    GPIO_enableInt(Motor_Encoder_0);
+    GPIO_setCallback(Motor_Encoder_1, motorEncIntHandler1);
+    GPIO_enableInt(Motor_Encoder_1);
+
+    /* Construct a Semaphore object to be used as a resource lock, initial count 0 */
 	Semaphore_Params_init(&semParams);
 	Semaphore_construct(&sem0Struct, 0, &semParams);
 	sem0Handle = Semaphore_handle(&sem0Struct);
+
+	/* Construct a Semaphore object to be used as a resource lock, initial count 0 */
+	Semaphore_Params_init(&semParams);
+	Semaphore_construct(&SampSemStruct, 0, &semParams);
+	SampSemHandle = Semaphore_handle(&SampSemStruct);
+
+	/* Construct a Semaphore object to be used as a resource lock, initial count 0 */
+	Semaphore_Params_init(&semParams);
+	Semaphore_construct(&pathSemStruct, 0, &semParams);
+	pathSemHandle = Semaphore_handle(&pathSemStruct);
 
     /* Construct heartBeat Task  thread */
     Task_Params_init(&taskParams);
@@ -102,12 +128,33 @@ int main(void)
     taskParams.stack = &task0Stack;
     Task_construct(&task0Struct, (Task_FuncPtr)heartBeatFxn, &taskParams, NULL);
 
-    /* Construct heartBeat Task  thread */
+    /* Construct motor control Task  thread */
     Task_Params_init(&taskParams);
     taskParams.arg0 = (UArg) sem0Handle;
     taskParams.stackSize = TASKSTACKSIZE;
     taskParams.stack = &task1Stack;
-    Task_construct(&task1Struct, (Task_FuncPtr)motorControlFxn, &taskParams, NULL);
+    Task_construct(&task1Struct, (Task_FuncPtr)tMotorControl, &taskParams, NULL);
+
+    /* Construct sensor suite Task  thread */
+	Task_Params_init(&taskParams);
+	taskParams.arg0 = (UArg) SampSemHandle;
+	taskParams.stackSize = TASKSTACKSIZE;
+	taskParams.stack = &task2Stack;
+	Task_construct(&task2Struct, (Task_FuncPtr)tSensorSuite, &taskParams, NULL);
+
+	/* Construct clock for sampling period release */
+	Clock_Params_init(&clkParams);
+	clkParams.period = SAMPLING_RATE_US/Clock_tickPeriod;
+	clkParams.startFlag = TRUE;
+	Clock_construct(&clk0Struct, (Clock_FuncPtr)clk0Fxn,
+			SAMPLING_RATE_US/Clock_tickPeriod, &clkParams);
+
+	/* Construct clock for sampling period release */
+	Clock_Params_init(&clkParams);
+	clkParams.period = PATHING_PERIOD_US/Clock_tickPeriod;
+	clkParams.startFlag = TRUE;
+	Clock_construct(&clk1Struct, (Clock_FuncPtr)clk1Fxn,
+			PATHING_PERIOD_US/Clock_tickPeriod, &clkParams);
 
     /* Turn on user LED */
     GPIO_write(Board_LED0, Board_LED_ON);
@@ -121,4 +168,40 @@ int main(void)
     BIOS_start();
 
     return (0);
+}
+
+/*
+ *  ======== heartBeatFxn ========
+ *  Toggle the Board_LED0. The Task_sleep is determined by arg0 which
+ *  is configured for the heartBeat Task instance.
+ */
+Void heartBeatFxn(UArg arg0, UArg arg1)
+{
+
+    while (1) {
+        Task_sleep((UInt)arg0);
+
+        GPIO_toggle(Board_LED0);
+        Semaphore_post(sem0Handle);
+    }
+}
+
+/*
+ *  ======== clk0Fxn =======
+ */
+Void clk0Fxn(UArg arg0)
+{
+
+    Semaphore_post(SampSemHandle);
+
+}
+
+/*
+ *  ======== clk1Fxn =======
+ */
+Void clk1Fxn(UArg arg0)
+{
+
+    Semaphore_post(pathSemHandle);
+
 }

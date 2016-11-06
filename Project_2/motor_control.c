@@ -20,15 +20,15 @@
 
 #include "motor_control.h"
 
-
 MSP_EXP432P401R_PWMName pwmNames[2] = { Board_PWM0, Board_PWM1 };
 
 
-Void motorControlFxn(UArg arg0, UArg arg1) {
+Void tMotorControl(UArg arg0, UArg arg1) {
 
 	PWM_Handle pwm[NUM_MOTORS];
 	PWM_Params pwmParams[NUM_MOTORS];
 	uint16_t   duty[NUM_MOTORS];
+
 
 	Semaphore_Handle semHandle;
 
@@ -57,12 +57,17 @@ Void motorControlFxn(UArg arg0, UArg arg1) {
 
 
 	while (1) {
-		/* Block and receive changes from message queue */
-		//msgQReceive(pwmMessage, etc...)
+		/* Block and receive changes from ? */
 		Semaphore_pend(semHandle, BIOS_WAIT_FOREVER);
 
 		/* Update PWMs */
 		for( i = 0; i < NUM_MOTORS; i++ ) {
+			if( duty[i] < 2000 ) {
+				duty[i] += 100;
+			}
+			else {
+				duty[i] = 0;
+			}
 			PWM_setDuty(pwm[i], duty[i]);
 		}
 	}

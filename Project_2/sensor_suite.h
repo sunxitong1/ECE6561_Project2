@@ -9,7 +9,9 @@
 #define SENSOR_SUITE_H_
 
 
-
+void motorEncIntHandler0(unsigned int index);
+void motorEncIntHandler1(unsigned int index);
+Void tSensorSuite(UArg arg0, UArg arg1);
 
 
 #endif /* SENSOR_SUITE_H_ */
