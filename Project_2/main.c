@@ -107,7 +107,7 @@ int main(void)
     taskParams.arg0 = (UArg) sem0Handle;
     taskParams.stackSize = TASKSTACKSIZE;
     taskParams.stack = &task1Stack;
-    Task_construct(&task1Struct, (Task_FuncPtr)motoControlFxn, &taskParams, NULL);
+    Task_construct(&task1Struct, (Task_FuncPtr)motorControlFxn, &taskParams, NULL);
 
     /* Turn on user LED */
     GPIO_write(Board_LED0, Board_LED_ON);

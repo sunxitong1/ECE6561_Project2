@@ -10,6 +10,6 @@
 
 #define NUM_MOTORS	2
 
-Void motoControlFxn(UArg arg0, UArg arg1);
+Void motorControlFxn(UArg arg0, UArg arg1);
 
 #endif /* MOTOR_CONTROL_H_ */

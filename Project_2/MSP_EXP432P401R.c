@@ -317,18 +317,18 @@ PWMTimerMSP432_Object pwmTimerMSP432Objects[MSP_EXP432P401R_PWMCOUNT];
 
 const PWMTimerMSP432_HWAttrsV1 pwmTimerMSP432HWAttrs[MSP_EXP432P401R_PWMCOUNT] = {
     {
-        .timerBaseAddr = TIMER_A1_BASE,
+        .timerBaseAddr = TIMER_A2_BASE,
         .clockSource = TIMER_A_CLOCKSOURCE_SMCLK,
         .compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_1,
-        .gpioPort = GPIO_PORT_P2,
+        .gpioPort = GPIO_PORT_P5,
         .gpioPinIndex = GPIO_PIN6,
         .pwmMode = GPIO_PRIMARY_MODULE_FUNCTION
     },
     {
-        .timerBaseAddr = TIMER_A1_BASE,
+        .timerBaseAddr = TIMER_A2_BASE,
         .clockSource = TIMER_A_CLOCKSOURCE_SMCLK,
         .compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_2,
-        .gpioPort = GPIO_PORT_P2,
+        .gpioPort = GPIO_PORT_P5,
         .gpioPinIndex = GPIO_PIN7,
         .pwmMode = GPIO_PRIMARY_MODULE_FUNCTION
     }
@@ -354,14 +354,17 @@ const PWM_Config PWM_config[] = {
 void MSP_EXP432P401R_initPWM(void)
 {
     /* Use Port Map on Port2 get Timer outputs on pins with LEDs (2.1, 2.2) */
-    const uint8_t portMap [] = {
+    /*const uint8_t portMap [] = {
         PM_NONE, PM_NONE, PM_NONE, PM_NONE,
-        PM_NONE, PM_NONE, PM_TA0CCR3A, PM_TA0CCR4A
-    };
+        PM_NONE, PM_NONE,     PM_TA1CCR1A,     PM_TA1CCR2A
+    };*/
 
     /* Mapping capture compare registers to Port 2 */
-    MAP_PMAP_configurePorts((const uint8_t *) portMap, PMAP_P2MAP, 1,
-        PMAP_DISABLE_RECONFIGURATION);
+    /*MAP_PMAP_configurePorts((const uint8_t *) portMap, PMAP_P2MAP, 1,
+        PMAP_DISABLE_RECONFIGURATION);*/
+
+	MAP_GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P5, GPIO_PIN6 | GPIO_PIN7,
+	            GPIO_PRIMARY_MODULE_FUNCTION);
 
     PWM_init();
 }

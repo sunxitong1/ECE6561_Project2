@@ -24,7 +24,7 @@
 MSP_EXP432P401R_PWMName pwmNames[2] = { Board_PWM0, Board_PWM1 };
 
 
-Void motoControlFxn(UArg arg0, UArg arg1) {
+Void motorControlFxn(UArg arg0, UArg arg1) {
 
 	PWM_Handle pwm[NUM_MOTORS];
 	PWM_Params pwmParams[NUM_MOTORS];
@@ -40,19 +40,21 @@ Void motoControlFxn(UArg arg0, UArg arg1) {
 	for( i = 0; i < NUM_MOTORS; i++ ) {
 		duty[i] = 0;
 
-		PWM_Params_init(&pwmParams[i]);
+		PWM_Params_init(&(pwmParams[i]));
 		pwmParams[i].dutyUnits = PWM_DUTY_US;
 		pwmParams[i].dutyValue = 0;
 		pwmParams[i].periodUnits = PWM_PERIOD_US;
-		pwmParams[i].periodValue = 0;
+		pwmParams[i].periodValue = 3000;
 
-		pwm[i] = PWM_open(pwmNames[i], &pwmParams[i]);
+		pwm[i] = PWM_open(pwmNames[i], &(pwmParams[i]));
 
 		if (pwm[i] == NULL) {
 			System_abort("PWM did not open!");
 		}
 		PWM_start(pwm[i]);
 	}
+
+
 
 	while (1) {
 		/* Block and receive changes from message queue */
