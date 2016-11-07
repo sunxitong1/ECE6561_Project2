@@ -42,7 +42,7 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	IArg mutexKey;
 	
 	semHandle = (Semaphore_Handle) arg0;
-	localCommMotorObject.desiredV = 1000;
+	localCommMotorObject.desiredV = 100;
 	localCommMotorObject.bias = 50;
 
 	/* Initialize pwms */
@@ -75,10 +75,10 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		/* Update PWMs */
 		for( i = 0; i < NUM_MOTORS; i++ ) {
 			if (i == 0) {
-				duty[i] = ((localCommMotorObject.desiredV * 30)*bias)/100;
+				duty[i] = ((localCommMotorObject.desiredV * 30)*localCommMotorObject.bias)/100;
 			}
 			else {
-				duty[i] = ((localCommMotorObject.desiredV * 30)*(100-bias))/100;
+				duty[i] = ((localCommMotorObject.desiredV * 30)*(100-localCommMotorObject.bias))/100;
 			}
 			PWM_setDuty(pwm[i], duty[i]);
 		}
