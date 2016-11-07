@@ -19,6 +19,7 @@
 #include "Board.h"
 
 #include "motor_control.h"
+#include "comms.h"
 
 MSP_EXP432P401R_PWMName pwmNames[2] = { Board_PWM0, Board_PWM1 };
 
@@ -28,7 +29,6 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	PWM_Handle pwm[NUM_MOTORS];
 	PWM_Params pwmParams[NUM_MOTORS];
 	uint16_t   duty[NUM_MOTORS];
-
 
 	Semaphore_Handle semHandle;
 

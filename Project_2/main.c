@@ -69,22 +69,21 @@ Char task1Stack[TASKSTACKSIZE];
 Char task2Stack[TASKSTACKSIZE];
 Char task3Stack[TASKSTACKSIZE];
 
-Semaphore_Struct sem0Struct;
-Semaphore_Handle sem0Handle;
+Semaphore_Struct motorSemStruct;
+Semaphore_Handle motorSemHandle;
 Semaphore_Struct SampSemStruct;
 Semaphore_Handle SampSemHandle;
 Semaphore_Struct pathSemStruct;
 Semaphore_Handle pathSemHandle;
 
-
 Clock_Struct clk0Struct;
 Clock_Struct clk1Struct;
-
 
 Void heartBeatFxn(UArg arg0, UArg arg1);
 Void clk0Fxn(UArg arg0);
 Void clk1Fxn(UArg arg0);
 
+uint32_t commDutyValues[2];
 
 /*
  *  ======== main ========
@@ -108,8 +107,8 @@ int main(void)
 
     /* Construct a Semaphore object to be used as a resource lock, initial count 0 */
 	Semaphore_Params_init(&semParams);
-	Semaphore_construct(&sem0Struct, 0, &semParams);
-	sem0Handle = Semaphore_handle(&sem0Struct);
+	Semaphore_construct(&motorSemStruct, 0, &semParams);
+	motorSemHandle = Semaphore_handle(&motorSemStruct);
 
 	/* Construct a Semaphore object to be used as a resource lock, initial count 0 */
 	Semaphore_Params_init(&semParams);
@@ -130,7 +129,7 @@ int main(void)
 
     /* Construct motor control Task  thread */
     Task_Params_init(&taskParams);
-    taskParams.arg0 = (UArg) sem0Handle;
+    taskParams.arg0 = (UArg) motorSemHandle;
     taskParams.stackSize = TASKSTACKSIZE;
     taskParams.stack = &task1Stack;
     Task_construct(&task1Struct, (Task_FuncPtr)tMotorControl, &taskParams, NULL);
@@ -182,7 +181,7 @@ Void heartBeatFxn(UArg arg0, UArg arg1)
         Task_sleep((UInt)arg0);
 
         GPIO_toggle(Board_LED0);
-        Semaphore_post(sem0Handle);
+        Semaphore_post(motorSemHandle);
     }
 }
 
