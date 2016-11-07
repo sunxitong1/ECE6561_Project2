@@ -182,11 +182,19 @@ int main(void)
  */
 Void heartBeatFxn(UArg arg0, UArg arg1)
 {
+	IArg mutexKey;
 
     while (1) {
         Task_sleep((UInt)arg0);
-
-        GPIO_toggle(Board_LED0);
+        
+		GPIO_toggle(Board_LED0);
+		
+		mutexKey = GateMutex_enter(commMotorMutexHandle);
+		for( i = 0; i < NUM_MOTORS; i++ ) {
+			commDutyValues[i] += 100 + (i*10); 
+		}
+		GateMutex_leave(commMotorMutexHandle, mutexKey);
+		
         Semaphore_post(motorSemHandle);
     }
 }
