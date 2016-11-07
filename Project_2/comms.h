@@ -8,8 +8,17 @@
 #ifndef COMMS_H_
 #define COMMS_H_
 
-extern uint32_t commDutyValues[2];
-extern GateMutex_Struct commMotorMutexStruct;
-extern GateMutex_Handle commMotorMutexHandle;
+#include <ti/sysbios/knl/Semaphore.h>
+
+#include "sensor_suite.h"
+#include "motor_control.h"
+
+extern uint32_t           commDutyValues[2];
+extern commMotorObject_t  commMotorObject;
+extern GateMutex_Handle   commMotorObjectMutex;
+
+extern GateMutex_Handle   commMeasTicksObjectMutex;
+
+extern GateMutex_Handle   commMeasVObjectMutex;
 
 #endif /* COMMS_H_ */

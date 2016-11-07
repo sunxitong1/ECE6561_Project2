@@ -83,9 +83,18 @@ Void heartBeatFxn(UArg arg0, UArg arg1);
 Void clk0Fxn(UArg arg0);
 Void clk1Fxn(UArg arg0);
 
-GateMutex_Struct commMotorMutexStruct;
-GateMutex_Handle commMotorMutexHandle;
-uint32_t commDutyValues[2];
+/* comms variables */
+GateMutex_Struct   commMOMutexStruct;
+GateMutex_Handle   commMotorObjectMutex;
+uint32_t           commDutyValues[2];
+commMotorObject_t  commMotorObject;
+
+GateMutex_Struct   commMTOMutexStruct;
+GateMutex_Handle   commMeasTicksObjectMutex;
+
+GateMutex_Struct   commMVOMutexStruct;
+GateMutex_Handle   commMeasVObjectMutex;
+
 
 /*
  *  ======== main ========
@@ -123,8 +132,12 @@ int main(void)
 	pathSemHandle = Semaphore_handle(&pathSemStruct);
 	
 	/* Construct Mutexes for comms structures */
-	GateMutex_construct(&commMotorMutexStruct, NULL);
-	commMotorMutexHandle = GateMutex_handle(&commMotorMutexStruct);
+	GateMutex_construct(&commMOMutexStruct, NULL);
+	commMotorObjectMutex = GateMutex_handle(&commMOMutexStruct);
+	GateMutex_construct(&commMTOMutexStruct, NULL);
+	commMeasTicksObjectMutex = GateMutex_handle(&commMTOMutexStruct);
+	GateMutex_construct(&commMVOMutexStruct, NULL);
+	commMeasVObjectMutex = GateMutex_handle(&commMVOMutexStruct);
 
     /* Construct heartBeat Task  thread */
     Task_Params_init(&taskParams);
@@ -189,11 +202,11 @@ Void heartBeatFxn(UArg arg0, UArg arg1)
         
 		GPIO_toggle(Board_LED0);
 		
-		mutexKey = GateMutex_enter(commMotorMutexHandle);
+		mutexKey = GateMutex_enter(commMotorObjectMutex);
 		for( i = 0; i < NUM_MOTORS; i++ ) {
 			commDutyValues[i] += 100 + (i*10); 
 		}
-		GateMutex_leave(commMotorMutexHandle, mutexKey);
+		GateMutex_leave(commMotorObjectMutex, mutexKey);
 		
         Semaphore_post(motorSemHandle);
     }
