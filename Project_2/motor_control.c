@@ -23,7 +23,13 @@
 
 MSP_EXP432P401R_PWMName pwmNames[2] = { Board_PWM0, Board_PWM1 };
 
-
+/*
+*
+* tMotorControl
+*
+* 
+*
+*/
 Void tMotorControl(UArg arg0, UArg arg1) {
 
 	PWM_Handle pwm[NUM_MOTORS];
@@ -36,7 +42,7 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	IArg mutexKey;
 	
 	semHandle = (Semaphore_Handle) arg0;
-	localCommMotorObject.desiredV = 0;
+	localCommMotorObject.desiredV = 1000;
 	localCommMotorObject.bias = 50;
 
 	/* Initialize pwms */
@@ -59,17 +65,33 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 
 	while (1) {
 		/* Block and receive changes from ? */
-		Semaphore_pend(semHandle, BIOS_WAIT_FOREVER);
+		Semaphore_pend(motorSemHandle, BIOS_WAIT_FOREVER);
 
-		/* Update PWMs */
+		/* Update Motor Object */
 		mutexKey = GateMutex_enter(commMotorObjectMutex);
 		localCommMotorObject = commMotorObject;
+		GateMutex_leave(commMotorObjectMutex, mutexKey);
+
+		/* Update PWMs */
 		for( i = 0; i < NUM_MOTORS; i++ ) {
-			duty[i] = commDutyValues[i];
+			if (i == 0) {
+				duty[i] = ((localCommMotorObject.desiredV * 30)*bias)/100;
+			}
+			else {
+				duty[i] = ((localCommMotorObject.desiredV * 30)*(100-bias))/100;
+			}
 			PWM_setDuty(pwm[i], duty[i]);
 		}
-		GateMutex_leave(commMotorObjectMutex, mutexKey);
 	}
 
 }
 
+/* Example for updating the motor values:
+	
+	#include "comms.h"
+
+	mutexKey = GateMutex_enter(commMotorObjectMutex);
+	commMotorObject.desiredV = 50; // Should be 0-100
+	commMotorObject.bias = 50;     // Should be 0-100
+	GateMutex_leave(commMotorObjectMutex, mutexKey);
+*/
