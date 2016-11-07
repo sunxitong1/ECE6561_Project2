@@ -83,6 +83,8 @@ Void heartBeatFxn(UArg arg0, UArg arg1);
 Void clk0Fxn(UArg arg0);
 Void clk1Fxn(UArg arg0);
 
+GateMutex_Struct commMotorMutexStruct;
+GateMutex_Handle commMotorMutexHandle;
 uint32_t commDutyValues[2];
 
 /*
@@ -119,6 +121,10 @@ int main(void)
 	Semaphore_Params_init(&semParams);
 	Semaphore_construct(&pathSemStruct, 0, &semParams);
 	pathSemHandle = Semaphore_handle(&pathSemStruct);
+	
+	/* Construct Mutexes for comms structures */
+	GateMutex_construct(&commMotorMutexStruct, NULL);
+	commMotorMutexHandle = GateMutex_handle(&commMotorMutexStruct);
 
     /* Construct heartBeat Task  thread */
     Task_Params_init(&taskParams);

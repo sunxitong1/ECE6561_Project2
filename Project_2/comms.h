@@ -9,6 +9,7 @@
 #define COMMS_H_
 
 extern uint32_t commDutyValues[2];
-extern Semaphore_Handle motorSemHandle;
+extern GateMutex_Struct commMotorMutexStruct;
+extern GateMutex_Handle commMotorMutexHandle;
 
 #endif /* COMMS_H_ */

@@ -31,6 +31,7 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	uint16_t   duty[NUM_MOTORS];
 
 	Semaphore_Handle semHandle;
+	IArg mutexKey;
 
 	semHandle = (Semaphore_Handle) arg0;
 
@@ -61,15 +62,12 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		Semaphore_pend(semHandle, BIOS_WAIT_FOREVER);
 
 		/* Update PWMs */
+		mutexKey = GateMutex_enter(commMotorMutexHandle);
 		for( i = 0; i < NUM_MOTORS; i++ ) {
-			if( duty[i] < 2000 ) {
-				duty[i] += 100;
-			}
-			else {
-				duty[i] = 0;
-			}
+			duty[i] = commDutyValues[i];
 			PWM_setDuty(pwm[i], duty[i]);
 		}
+		GateMutex_leave(commMotorMutexHandle, mutexKey);
 	}
 
 }
