@@ -29,6 +29,7 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	PWM_Handle pwm[NUM_MOTORS];
 	PWM_Params pwmParams[NUM_MOTORS];
 	uint16_t   duty[NUM_MOTORS];
+	int i;
 
 	Semaphore_Handle semHandle;
 	commMotorObject_t localCommMotorObject;

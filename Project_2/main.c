@@ -42,6 +42,7 @@
 #include <ti/sysbios/knl/Task.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/knl/Clock.h>
+#include <ti/sysbios/gates/gateMutex.h>
 
 /* TI-RTOS Header files */
 #include <ti/drivers/GPIO.h>
@@ -196,6 +197,7 @@ int main(void)
 Void heartBeatFxn(UArg arg0, UArg arg1)
 {
 	IArg mutexKey;
+	int i;
 
     while (1) {
         Task_sleep((UInt)arg0);
@@ -204,7 +206,12 @@ Void heartBeatFxn(UArg arg0, UArg arg1)
 		
 		mutexKey = GateMutex_enter(commMotorObjectMutex);
 		for( i = 0; i < NUM_MOTORS; i++ ) {
-			commDutyValues[i] += 100 + (i*10); 
+		    if(commDutyValues[i] < 2000) {
+		        commDutyValues[i] += 100 + (i*10);
+		    }
+		    else {
+		        commDutyValues[i] = 0;
+		    }
 		}
 		GateMutex_leave(commMotorObjectMutex, mutexKey);
 		

@@ -9,6 +9,8 @@
 #define COMMS_H_
 
 #include <ti/sysbios/knl/Semaphore.h>
+#include <ti/sysbios/gates/gateMutex.h>
+
 
 #include "sensor_suite.h"
 #include "motor_control.h"
