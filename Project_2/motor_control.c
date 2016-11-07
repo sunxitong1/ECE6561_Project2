@@ -63,7 +63,7 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		/* Update PWMs */
 		for( i = 0; i < NUM_MOTORS; i++ ) {
 			if( duty[i] < 2000 ) {
-				duty[i] += 100;
+				duty[i] += 100+i*10;
 			}
 			else {
 				duty[i] = 0;
