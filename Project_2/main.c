@@ -53,6 +53,7 @@
 /* Application Includes */
 #include "motor_control.h"
 #include "sensor_suite.h"
+#include "trajectory_planner.h"
 
 #define SAMPLING_RATE_US	50000
 #define PATHING_PERIOD_US	500000
@@ -141,6 +142,13 @@ int main(void)
 	taskParams.stackSize = TASKSTACKSIZE;
 	taskParams.stack = &task2Stack;
 	Task_construct(&task2Struct, (Task_FuncPtr)tSensorSuite, &taskParams, NULL);
+
+    /* Construct trajectory planner Task  thread */
+	Task_Params_init(&taskParams);
+	taskParams.arg0 = (UArg) pathSemHandle;
+	taskParams.stackSize = TASKSTACKSIZE;
+	taskParams.stack = &task3Stack;
+	Task_construct(&task3Struct, (Task_FuncPtr)tTrajectoryPlanner, &taskParams, NULL);
 
 	/* Construct clock for sampling period release */
 	Clock_Params_init(&clkParams);
