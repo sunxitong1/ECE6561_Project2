@@ -22,6 +22,9 @@
 /* Board Header file */
 #include "Board.h"
 
+#include "sensor_suite.h"
+#include "comms.h"
+
 
 bool		sensorSuiteStarted = false;
 uint32_t	enc0TickCount = 0;

@@ -7,3 +7,6 @@ hello_posix/Debug/
 /RemoteSystemsTempFiles/
 */README.html
 *.obj
+*.libs
+Project_2/src/sysbios/makefile
+*.aem4f
