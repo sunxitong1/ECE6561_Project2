@@ -21,6 +21,8 @@
 #include "motor_control.h"
 #include "comms.h"
 
+#define PWM_PERIOD_VALUE    3000
+
 MSP_EXP432P401R_PWMName pwmNames[2] = { Board_PWM0, Board_PWM1 };
 
 /*
@@ -53,7 +55,7 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		pwmParams[i].dutyUnits = PWM_DUTY_US;
 		pwmParams[i].dutyValue = 0;
 		pwmParams[i].periodUnits = PWM_PERIOD_US;
-		pwmParams[i].periodValue = 3000;
+		pwmParams[i].periodValue = PWM_PERIOD_VALUE;
 
 		pwm[i] = PWM_open(pwmNames[i], &(pwmParams[i]));
 
@@ -71,14 +73,21 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		mutexKey = GateMutex_enter(commMotorObjectMutex);
 		localCommMotorObject = commMotorObject;
 		GateMutex_leave(commMotorObjectMutex, mutexKey);
+		
+		/* Check inputs */		
+		if( localCommMotorObject.bias > 100 ) {localCommMotorObject.bias = 100;}
+		if( localCommMotorObject.bias < -100 ) {localCommMotorObject.bias = -100;}
+		if( localCommMotorObject.desiredV > 100 ) {localCommMotorObject.desiredV = 100;}
 
 		/* Update PWMs */
+		/* Desired V is currently in linear percentage of PWM output */
+		/* Bias proportion is (100+bias)/2 or (100-bias)/2 */
 		for( i = 0; i < NUM_MOTORS; i++ ) {
 			if (i == 0) {
-				duty[i] = ((localCommMotorObject.desiredV * 30)*localCommMotorObject.bias)/100;
+				duty[i] = ((localCommMotorObject.desiredV * PWM_PERIOD_VALUE/100)*(100+localCommMotorObject.bias))/200;
 			}
 			else {
-				duty[i] = ((localCommMotorObject.desiredV * 30)*(100-localCommMotorObject.bias))/100;
+				duty[i] = ((localCommMotorObject.desiredV * PWM_PERIOD_VALUE/100)*(100-localCommMotorObject.bias))/200;
 			}
 			PWM_setDuty(pwm[i], duty[i]);
 		}
@@ -92,6 +101,6 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 
 	mutexKey = GateMutex_enter(commMotorObjectMutex);
 	commMotorObject.desiredV = 50; // Should be 0-100
-	commMotorObject.bias = 50;     // Should be 0-100
+	commMotorObject.bias = 50;     // Should be -100 - 100
 	GateMutex_leave(commMotorObjectMutex, mutexKey);
 */
