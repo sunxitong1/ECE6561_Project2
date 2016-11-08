@@ -40,6 +40,7 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	int i;
 
 	motorControlMsg_t localMotorControlMsg;
+	motorMeasMsg_t    localMotorMeasMsg;
 	
 	localMotorControlMsg.desiredV = 1000;
 	localMotorControlMsg.bias = 0;
@@ -63,7 +64,9 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	}
 
 	while (1) {
-		/* Block and receive changes from ? */
+		/* Block and receive changes from Sensor Suite via Motor Measurement Message */
+		motorMeasurementMsgRead( &localMotorMeasMsg );
+
 		motorControlMsgRead( &localMotorControlMsg );
 		
 		/* Check inputs */		
