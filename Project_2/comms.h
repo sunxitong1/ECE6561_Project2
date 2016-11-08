@@ -8,6 +8,7 @@
 #ifndef COMMS_H_
 #define COMMS_H_
 
+#include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/gates/gateMutex.h>
 

@@ -23,7 +23,7 @@
 
 Semaphore_Handle pathSemHandle;
 
-commMotorObject_t localCommMotorObject;
+motorControlMsg_t localMotorControlMsg;
 IArg mutexKey;
 
 uint16_t   bias = 50;
@@ -46,9 +46,9 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
     Semaphore_pend(motorSemHandle, BIOS_WAIT_FOREVER);
 
     /* Update Motor Object */
-    mutexKey = GateMutex_enter(commMotorObjectMutex);
+    /*mutexKey = GateMutex_enter(commMotorObjectMutex);
     localCommMotorObject = commMotorObject;
-    GateMutex_leave(commMotorObjectMutex, mutexKey);
+    GateMutex_leave(commMotorObjectMutex, mutexKey);*/
 
     while(1) {
         Semaphore_pend(pathSemHandle, BIOS_WAIT_FOREVER);
@@ -66,10 +66,13 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
         rad = atan(3./4.);
         angle = rad*180.0/pi;
 
-        mutexKey = GateMutex_enter(commMotorObjectMutex);
+        /*mutexKey = GateMutex_enter(commMotorObjectMutex);
         commMotorObject.desiredV = velocity; // Should be 0-100
         commMotorObject.bias = bias;     // Should be 0-100
-        GateMutex_leave(commMotorObjectMutex, mutexKey);
+        GateMutex_leave(commMotorObjectMutex, mutexKey);*/
+
+        /* This is the new call! */
+        motorControlMsgSend( velocity, bias);
     }
 }
 
