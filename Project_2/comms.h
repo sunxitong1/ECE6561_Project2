@@ -40,7 +40,7 @@ inline void motorControlMsgRead( motorControlMsg_t *localMsgObject ) {
 	IArg mutexKey;
 	mutexKey = GateMutex_enter(motorControlMsgMutex);
 	localMsgObject->desiredV = motorControlMsg.desiredV; // Should be 0-100
-	localMsgObject->desiredV = motorControlMsg.bias;     // Should be -100 - 100
+	localMsgObject->bias = motorControlMsg.bias;     // Should be -100 - 100
 	GateMutex_leave(motorControlMsgMutex, mutexKey);
 }
 
