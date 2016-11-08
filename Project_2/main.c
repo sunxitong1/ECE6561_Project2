@@ -57,7 +57,11 @@
 #define SAMPLING_RATE_US	50000
 #define PATHING_PERIOD_US	500000
 
-#define TASKSTACKSIZE   	512
+#define HEARTBEAT_TASK_PRIO      3
+#define MOTORCONTROL_TASK_PRIO   3
+#define SENSORSUITE_TASK_PRIO    3
+
+#define TASKSTACKSIZE            512
 
 
 Task_Struct task0Struct;
@@ -126,6 +130,7 @@ int main(void)
     taskParams.arg0 = 1000;
     taskParams.stackSize = TASKSTACKSIZE;
     taskParams.stack = &task0Stack;
+    taskParams.priority = HEARTBEAT_TASK_PRIO;
     Task_construct(&task0Struct, (Task_FuncPtr)heartBeatFxn, &taskParams, NULL);
 
     /* Construct motor control Task  thread */
@@ -133,6 +138,7 @@ int main(void)
     taskParams.arg0 = (UArg) sem0Handle;
     taskParams.stackSize = TASKSTACKSIZE;
     taskParams.stack = &task1Stack;
+    taskParams.priority = MOTORCONTROL_TASK_PRIO;
     Task_construct(&task1Struct, (Task_FuncPtr)tMotorControl, &taskParams, NULL);
 
     /* Construct sensor suite Task  thread */
@@ -140,7 +146,8 @@ int main(void)
 	taskParams.arg0 = (UArg) SampSemHandle;
 	taskParams.stackSize = TASKSTACKSIZE;
 	taskParams.stack = &task2Stack;
-	Task_construct(&task2Struct, (Task_FuncPtr)tSensorSuite, &taskParams, NULL);
+    taskParams.priority = SENSORSUITE_TASK_PRIO;
+    Task_construct(&task2Struct, (Task_FuncPtr)tSensorSuite, &taskParams, NULL);
 
 	/* Construct clock for sampling period release */
 	Clock_Params_init(&clkParams);
