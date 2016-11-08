@@ -19,22 +19,31 @@
 #include "Board.h"
 
 #include "motor_control.h"
+#include "comms.h"
+
+#define PWM_PERIOD_VALUE    3000
 
 MSP_EXP432P401R_PWMName pwmNames[2] = { Board_PWM0, Board_PWM1 };
 
-
+/*
+*
+* tMotorControl
+*
+* 
+*
+*/
 Void tMotorControl(UArg arg0, UArg arg1) {
 
 	PWM_Handle pwm[NUM_MOTORS];
 	PWM_Params pwmParams[NUM_MOTORS];
 	uint16_t   duty[NUM_MOTORS];
-
-
-	Semaphore_Handle semHandle;
-
-	semHandle = (Semaphore_Handle) arg0;
-
 	int i;
+
+	motorControlMsg_t localMotorControlMsg;
+	motorMeasMsg_t    localMotorMeasMsg;
+	
+	localMotorControlMsg.desiredV = 1000;
+	localMotorControlMsg.bias = 0;
 
 	/* Initialize pwms */
 	for( i = 0; i < NUM_MOTORS; i++ ) {
@@ -44,7 +53,7 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		pwmParams[i].dutyUnits = PWM_DUTY_US;
 		pwmParams[i].dutyValue = 0;
 		pwmParams[i].periodUnits = PWM_PERIOD_US;
-		pwmParams[i].periodValue = 3000;
+		pwmParams[i].periodValue = PWM_PERIOD_VALUE;
 
 		pwm[i] = PWM_open(pwmNames[i], &(pwmParams[i]));
 
@@ -54,19 +63,26 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		PWM_start(pwm[i]);
 	}
 
-
-
 	while (1) {
-		/* Block and receive changes from ? */
-		Semaphore_pend(semHandle, BIOS_WAIT_FOREVER);
+		/* Block and receive changes from Sensor Suite via Motor Measurement Message */
+		motorMeasurementMsgRead( &localMotorMeasMsg );
+
+		motorControlMsgRead( &localMotorControlMsg );
+		
+		/* Check inputs */		
+		if( localMotorControlMsg.bias > 100 ) {localMotorControlMsg.bias = 100;}
+		if( localMotorControlMsg.bias < -100 ) {localMotorControlMsg.bias = -100;}
+		if( localMotorControlMsg.desiredV > 100 ) {localMotorControlMsg.desiredV = 100;}
 
 		/* Update PWMs */
+		/* Desired V is currently in linear percentage of PWM output */
+		/* Bias proportion is (100+bias)/2 or (100-bias)/2 */
 		for( i = 0; i < NUM_MOTORS; i++ ) {
-			if( duty[i] < 2000 ) {
-				duty[i] += 100+i*10;
+			if (i == 0) {
+				duty[i] = ((localMotorControlMsg.desiredV * PWM_PERIOD_VALUE/100)*(100+localMotorControlMsg.bias))/200;
 			}
 			else {
-				duty[i] = 0;
+				duty[i] = ((localMotorControlMsg.desiredV * PWM_PERIOD_VALUE/100)*(100-localMotorControlMsg.bias))/200;
 			}
 			PWM_setDuty(pwm[i], duty[i]);
 		}
@@ -74,3 +90,12 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 
 }
 
+/* Example for updating the motor values:
+	
+	#include "comms.h"
+
+	mutexKey = GateMutex_enter(commMotorObjectMutex);
+	commMotorObject.desiredV = 50; // Should be 0-100
+	commMotorObject.bias = 50;     // Should be -100 - 100
+	GateMutex_leave(commMotorObjectMutex, mutexKey);
+*/

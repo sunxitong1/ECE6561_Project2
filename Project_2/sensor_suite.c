@@ -22,6 +22,9 @@
 /* Board Header file */
 #include "Board.h"
 
+#include "sensor_suite.h"
+#include "comms.h"
+
 
 bool		sensorSuiteStarted = false;
 uint32_t	enc0TickCount = 0;
@@ -58,5 +61,12 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		Semaphore_pend(SampSemHandle, BIOS_WAIT_FOREVER);
 
 		/* Do sampling of sensor stuff */
+
+		/* Update motor Controller with measurements */
+		motorMeasurementMsgSend( 0, 0);
+
+		/* Update trajectory planner with measurements */
+
+
 	}
 }

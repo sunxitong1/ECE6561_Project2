@@ -8,6 +8,16 @@
 #ifndef MOTOR_CONTROL_H_
 #define MOTOR_CONTROL_H_
 
+typedef struct {
+  uint16_t	desiredV;
+  int8_t	bias;
+} motorControlMsg_t;
+
+typedef struct {
+  uint32_t leftV;
+  uint32_t rightV;
+} motorMeasMsg_t;
+
 #define NUM_MOTORS	2
 
 Void tMotorControl(UArg arg0, UArg arg1);

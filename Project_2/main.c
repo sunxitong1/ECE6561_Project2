@@ -42,6 +42,7 @@
 #include <ti/sysbios/knl/Task.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/knl/Clock.h>
+#include <ti/sysbios/gates/gateMutex.h>
 
 /* TI-RTOS Header files */
 #include <ti/drivers/GPIO.h>
@@ -73,21 +74,35 @@ Char task1Stack[TASKSTACKSIZE];
 Char task2Stack[TASKSTACKSIZE];
 Char task3Stack[TASKSTACKSIZE];
 
-Semaphore_Struct sem0Struct;
-Semaphore_Handle sem0Handle;
+Semaphore_Struct motorSemStruct;
+Semaphore_Handle motorSemHandle;
 Semaphore_Struct SampSemStruct;
 Semaphore_Handle SampSemHandle;
 Semaphore_Struct pathSemStruct;
 Semaphore_Handle pathSemHandle;
 
-
 Clock_Struct clk0Struct;
 Clock_Struct clk1Struct;
-
 
 Void heartBeatFxn(UArg arg0, UArg arg1);
 Void clk0Fxn(UArg arg0);
 Void clk1Fxn(UArg arg0);
+
+/* comms variables */
+motorControlMsg_t      motorControlMsg;
+GateMutex_Handle       motorControlMsgMutex;
+GateMutex_Struct       motorControlMsgMutexStruct;
+
+
+//extern trajectoryMeasMsg_t    trajectoryMeasMsg; //TODO: WHAT SHOULD THIS BE?
+GateMutex_Handle       trajectoryMsgMutex;
+GateMutex_Struct       trajectoryMsgMutexStruct;
+Semaphore_Handle       pathSemHandle;
+
+motorMeasMsg_t         motorMeasMsg;
+GateMutex_Handle       motorMeasMsgMutex;
+GateMutex_Struct       motorMeasMsgMutexStruct;
+Semaphore_Handle       motorSemHandle;
 
 
 /*
@@ -112,8 +127,8 @@ int main(void)
 
     /* Construct a Semaphore object to be used as a resource lock, initial count 0 */
 	Semaphore_Params_init(&semParams);
-	Semaphore_construct(&sem0Struct, 0, &semParams);
-	sem0Handle = Semaphore_handle(&sem0Struct);
+	Semaphore_construct(&motorSemStruct, 0, &semParams);
+	motorSemHandle = Semaphore_handle(&motorSemStruct);
 
 	/* Construct a Semaphore object to be used as a resource lock, initial count 0 */
 	Semaphore_Params_init(&semParams);
@@ -124,6 +139,14 @@ int main(void)
 	Semaphore_Params_init(&semParams);
 	Semaphore_construct(&pathSemStruct, 0, &semParams);
 	pathSemHandle = Semaphore_handle(&pathSemStruct);
+	
+	/* Construct Mutexes for comms structures */
+	GateMutex_construct(&motorControlMsgMutexStruct, NULL);
+	motorControlMsgMutex = GateMutex_handle(&motorControlMsgMutexStruct);
+	GateMutex_construct(&trajectoryMsgMutexStruct, NULL);
+	trajectoryMsgMutex = GateMutex_handle(&trajectoryMsgMutexStruct);
+	GateMutex_construct(&motorMeasMsgMutexStruct, NULL);
+	motorMeasMsgMutex = GateMutex_handle(&motorMeasMsgMutexStruct);
 
     /* Construct heartBeat Task  thread */
     Task_Params_init(&taskParams);
@@ -135,7 +158,7 @@ int main(void)
 
     /* Construct motor control Task  thread */
     Task_Params_init(&taskParams);
-    taskParams.arg0 = (UArg) sem0Handle;
+    taskParams.arg0 = (UArg) motorSemHandle;
     taskParams.stackSize = TASKSTACKSIZE;
     taskParams.stack = &task1Stack;
     taskParams.priority = MOTORCONTROL_TASK_PRIO;
@@ -187,9 +210,9 @@ Void heartBeatFxn(UArg arg0, UArg arg1)
 
     while (1) {
         Task_sleep((UInt)arg0);
+        
+		GPIO_toggle(Board_LED0);
 
-        GPIO_toggle(Board_LED0);
-        Semaphore_post(sem0Handle);
     }
 }
 
