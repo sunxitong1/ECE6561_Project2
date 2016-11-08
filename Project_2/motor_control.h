@@ -11,7 +11,12 @@
 typedef struct {
   uint16_t	desiredV;
   int8_t	bias;
-} commMotorObject_t;
+} motorControlMsg_t;
+
+typedef struct {
+  uint32_t leftV;
+  uint32_t rightV;
+} motorMeasMsg_t;
 
 #define NUM_MOTORS	2
 

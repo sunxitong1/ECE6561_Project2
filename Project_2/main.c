@@ -85,16 +85,20 @@ Void clk0Fxn(UArg arg0);
 Void clk1Fxn(UArg arg0);
 
 /* comms variables */
-GateMutex_Struct   commMOMutexStruct;
-GateMutex_Handle   commMotorObjectMutex;
-uint32_t           commDutyValues[2];
-commMotorObject_t  commMotorObject;
+motorControlMsg_t      motorControlMsg;
+GateMutex_Handle       motorControlMsgMutex;
+GateMutex_Struct       motorControlMsgMutexStruct;
 
-GateMutex_Struct   commMTOMutexStruct;
-GateMutex_Handle   commMeasTicksObjectMutex;
 
-GateMutex_Struct   commMVOMutexStruct;
-GateMutex_Handle   commMeasVObjectMutex;
+//extern trajectoryMeasMsg_t    trajectoryMeasMsg; //TODO: WHAT SHOULD THIS BE?
+GateMutex_Handle       trajectoryMsgMutex;
+GateMutex_Struct       trajectoryMsgMutexStruct;
+Semaphore_Handle       pathSemHandle;
+
+motorMeasMsg_t         motorMeasMsg;
+GateMutex_Handle       motorMeasMsgMutex;
+GateMutex_Struct       motorMeasMsgMutexStruct;
+Semaphore_Handle       motorSemHandle;
 
 
 /*
@@ -133,12 +137,12 @@ int main(void)
 	pathSemHandle = Semaphore_handle(&pathSemStruct);
 	
 	/* Construct Mutexes for comms structures */
-	GateMutex_construct(&commMOMutexStruct, NULL);
-	commMotorObjectMutex = GateMutex_handle(&commMOMutexStruct);
-	GateMutex_construct(&commMTOMutexStruct, NULL);
-	commMeasTicksObjectMutex = GateMutex_handle(&commMTOMutexStruct);
-	GateMutex_construct(&commMVOMutexStruct, NULL);
-	commMeasVObjectMutex = GateMutex_handle(&commMVOMutexStruct);
+	GateMutex_construct(&motorControlMsgMutexStruct, NULL);
+	motorControlMsgMutex = GateMutex_handle(&motorControlMsgMutexStruct);
+	GateMutex_construct(&trajectoryMsgMutexStruct, NULL);
+	trajectoryMsgMutex = GateMutex_handle(&trajectoryMsgMutexStruct);
+	GateMutex_construct(&motorMeasMsgMutexStruct, NULL);
+	motorMeasMsgMutex = GateMutex_handle(&motorMeasMsgMutexStruct);
 
     /* Construct heartBeat Task  thread */
     Task_Params_init(&taskParams);
@@ -212,7 +216,6 @@ Void clk0Fxn(UArg arg0)
 {
 
     Semaphore_post(SampSemHandle);
-	Semaphore_post(motorSemHandle);
 
 }
 

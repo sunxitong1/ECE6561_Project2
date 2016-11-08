@@ -39,13 +39,10 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	uint16_t   duty[NUM_MOTORS];
 	int i;
 
-	Semaphore_Handle semHandle;
-	commMotorObject_t localCommMotorObject;
-	IArg mutexKey;
+	motorControlMsg_t localMotorControlMsg;
 	
-	semHandle = (Semaphore_Handle) arg0;
-	localCommMotorObject.desiredV = 100;
-	localCommMotorObject.bias = 50;
+	localMotorControlMsg.desiredV = 1000;
+	localMotorControlMsg.bias = 0;
 
 	/* Initialize pwms */
 	for( i = 0; i < NUM_MOTORS; i++ ) {
@@ -67,27 +64,22 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 
 	while (1) {
 		/* Block and receive changes from ? */
-		Semaphore_pend(motorSemHandle, BIOS_WAIT_FOREVER);
-
-		/* Update Motor Object */
-		mutexKey = GateMutex_enter(commMotorObjectMutex);
-		localCommMotorObject = commMotorObject;
-		GateMutex_leave(commMotorObjectMutex, mutexKey);
+		motorControlMsgRead( &localMotorControlMsg );
 		
 		/* Check inputs */		
-		if( localCommMotorObject.bias > 100 ) {localCommMotorObject.bias = 100;}
-		if( localCommMotorObject.bias < -100 ) {localCommMotorObject.bias = -100;}
-		if( localCommMotorObject.desiredV > 100 ) {localCommMotorObject.desiredV = 100;}
+		if( localMotorControlMsg.bias > 100 ) {localMotorControlMsg.bias = 100;}
+		if( localMotorControlMsg.bias < -100 ) {localMotorControlMsg.bias = -100;}
+		if( localMotorControlMsg.desiredV > 100 ) {localMotorControlMsg.desiredV = 100;}
 
 		/* Update PWMs */
 		/* Desired V is currently in linear percentage of PWM output */
 		/* Bias proportion is (100+bias)/2 or (100-bias)/2 */
 		for( i = 0; i < NUM_MOTORS; i++ ) {
 			if (i == 0) {
-				duty[i] = ((localCommMotorObject.desiredV * PWM_PERIOD_VALUE/100)*(100+localCommMotorObject.bias))/200;
+				duty[i] = ((localMotorControlMsg.desiredV * PWM_PERIOD_VALUE/100)*(100+localMotorControlMsg.bias))/200;
 			}
 			else {
-				duty[i] = ((localCommMotorObject.desiredV * PWM_PERIOD_VALUE/100)*(100-localCommMotorObject.bias))/200;
+				duty[i] = ((localMotorControlMsg.desiredV * PWM_PERIOD_VALUE/100)*(100-localMotorControlMsg.bias))/200;
 			}
 			PWM_setDuty(pwm[i], duty[i]);
 		}
