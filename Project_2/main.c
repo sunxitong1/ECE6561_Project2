@@ -108,7 +108,7 @@ int main(void)
     Clock_Params clkParams;
 
     /* Call board init functions */
-    Board_initGeneral();
+    Board_initGeneral()  ;
     Board_initGPIO();
     Board_initPWM();
 
