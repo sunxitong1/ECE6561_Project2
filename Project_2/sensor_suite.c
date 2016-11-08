@@ -61,5 +61,12 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		Semaphore_pend(SampSemHandle, BIOS_WAIT_FOREVER);
 
 		/* Do sampling of sensor stuff */
+
+		/* Update motor Controller with measurements */
+		motorMeasurementMsgSend( 0, 0);
+
+		/* Update trajectory planner with measurements */
+
+
 	}
 }
