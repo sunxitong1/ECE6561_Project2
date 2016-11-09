@@ -167,7 +167,7 @@ int main(void)
     /* Construct sensor suite Task  thread */
 	Task_Params_init(&taskParams);
 	taskParams.arg0 = (UArg) SampSemHandle;
-	taskParams.stackSize = TASKSTACKSIZE;
+	taskParams.stackSize = TASKSTACKSIZE*2; // This has a lot of variables, so double stack
 	taskParams.stack = &task2Stack;
     taskParams.priority = SENSORSUITE_TASK_PRIO;
     Task_construct(&task2Struct, (Task_FuncPtr)tSensorSuite, &taskParams, NULL);
