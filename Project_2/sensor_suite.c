@@ -62,7 +62,7 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 	//int32_t e_l, e_r, e_b;              //errors for left vel, right vel, and bias
 //	int32_t e_b_last, u_b_last;         // save old values for compensation
 //	int32_t e_l_i, e_r_i;               // integral gain on l/r error
-//	int32_t vel_left, vel_right;        // left, right, and reference velocities
+//	int32_t vel_left, vel_right;        // left, right velocities
 //	int32_t u_l, u_r;                   // control commands for left and right wheels
 //	int32_t u_b;                        // contribution of bias to commands
 //	int32_t angle_left_old,angle_right_old;
@@ -80,8 +80,7 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 	CountL = 0; CountR = 0;
 	pCountL = 0; pCountR = 0;
 	DistL = 0; DistR = 0; DistC = 0;
-
-
+	Xpos = 0; Ypos = 0; DistT = 0;
 
 	while(1) {
 		Semaphore_pend(SampSemHandle, BIOS_WAIT_FOREVER);
@@ -92,7 +91,7 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		CountL = enc0TickCount;
 		CountR = enc1TickCount;
 
-
+		/* Estimate distance traveled per wheel */
 		DistL = (CountL-pCountL) * WHEELCIRC_MM / 36;  // DistL mm*10 (tenths of millimeters)
 		DistR = (CountR-pCountR) * WHEELCIRC_MM / 36;  // DistR mm*10
 		DistC = (DistL+DistR)/2;                       // DistC mm*10
@@ -100,8 +99,10 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		/* Skip everything if distance traveled sample is bad */
 		if( DistL > TOO_MUCH_DISTANCE || DistL > TOO_MUCH_DISTANCE ) continue;
 
+		/* Calculate the angle in radians? */
 		RadPos += (DistL - DistR); // /(WHEELBASE_MM); // Rad xWHEELBASE TODO: WAT
 
+		/* Calculate the angle in degrees through magic */
 		DegPos = fmodf((RadPos * 573.0f) / (100.0f * WHEELBASE_MM), 360.0f);  // Deg
 		if(DegPos<0) DegPos += 360.0f;
 
