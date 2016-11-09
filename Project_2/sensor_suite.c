@@ -97,6 +97,9 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		DistR = (CountR-pCountR) * WHEELCIRC_MM / 36;  // DistR mm*10
 		DistC = (DistL+DistR)/2;                       // DistC mm*10
 
+		/* Skip everything if distance traveled sample is bad */
+		if( DistL > TOO_MUCH_DISTANCE || DistL > TOO_MUCH_DISTANCE ) continue;
+
 		RadPos += (DistL - DistR); // /(WHEELBASE_MM); // Rad xWHEELBASE TODO: WAT
 
 		DegPos = fmodf((RadPos * 573.0f) / (100.0f * WHEELBASE_MM), 360.0f);  // Deg
