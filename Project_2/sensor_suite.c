@@ -49,6 +49,16 @@ void motorEncIntHandler1(unsigned int index)
 
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// GetVel returns the current velocity using advanced mathematics.
+int32_t GetVel( float angle_old, float angle, int32_t vel_old)
+{
+//     int vel;
+     return (A*200*(angle-angle_old)-(A-200)*vel_old)/(A+200);
+//     return vel;
+
+}
+
 Void tSensorSuite(UArg arg0, UArg arg1) {
 
 	// variables
@@ -59,15 +69,10 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 	int32_t Xpos, Ypos;                // X and Y position
 	float   DegPos, RadPos;            // Angle Position (in degrees / radians)
 
-	//int32_t e_l, e_r, e_b;              //errors for left vel, right vel, and bias
-//	int32_t e_b_last, u_b_last;         // save old values for compensation
-//	int32_t e_l_i, e_r_i;               // integral gain on l/r error
-//	int32_t vel_left, vel_right;        // left, right velocities
-//	int32_t u_l, u_r;                   // control commands for left and right wheels
-//	int32_t u_b;                        // contribution of bias to commands
+	float vel_left, vel_right;        // left, right velocities
 //	int32_t angle_left_old,angle_right_old;
 //	int32_t angle_left, angle_right;
-//	int32_t vel_left_old, vel_right_old;
+	int32_t vel_left_old, vel_right_old;
 
 	if( arg0 == NULL ) {
 		System_abort("Sampling semaphore NULL!");
@@ -111,8 +116,12 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		Xpos += DistC * cosf(DegPos) /10.0f;               // Xpos mm*10
 		Ypos += DistC * sinf(DegPos) /10.0f;               // Ypos mm*10
 
+		/* Get velocity in mm/s, (.010 m) / us  */
+		vel_left = (float) DistL / ( SAMPLING_PERIOD_US / 10000. );
+		vel_right = (float) DistR / ( SAMPLING_PERIOD_US / 10000. );
+
 		/* Update motor Controller with measurements */
-		motorMeasurementMsgSend( 0, 0);
+		motorMeasurementMsgSend( vel_left, vel_right);
 
 		/* Update trajectory planner with measurements */
 		//trajectoryMeasMsgSend( Xpos, Ypos, DistT, DegPos );

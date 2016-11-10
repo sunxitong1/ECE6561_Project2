@@ -54,9 +54,7 @@
 /* Application Includes */
 #include "motor_control.h"
 #include "sensor_suite.h"
-
-#define SAMPLING_RATE_US	50000
-#define PATHING_PERIOD_US	500000
+#include "odometryDefs.h"
 
 #define HEARTBEAT_TASK_PRIO      3
 #define MOTORCONTROL_TASK_PRIO   3
@@ -174,10 +172,10 @@ int main(void)
 
 	/* Construct clock for sampling period release */
 	Clock_Params_init(&clkParams);
-	clkParams.period = SAMPLING_RATE_US/Clock_tickPeriod;
+	clkParams.period = SAMPLING_PERIOD_US/Clock_tickPeriod;
 	clkParams.startFlag = TRUE;
 	Clock_construct(&clk0Struct, (Clock_FuncPtr)clk0Fxn,
-			SAMPLING_RATE_US/Clock_tickPeriod, &clkParams);
+			SAMPLING_PERIOD_US/Clock_tickPeriod, &clkParams);
 
 	/* Construct clock for sampling period release */
 	Clock_Params_init(&clkParams);
