@@ -63,7 +63,7 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		/* Do sampling of sensor stuff */
 
 		/* Update motor Controller with measurements */
-		motorMeasurementMsgSend( 0, 0);
+		motorMeasurementMsgSend( enc0TickCount, enc1TickCount);
 
 		/* Update trajectory planner with measurements */
 
