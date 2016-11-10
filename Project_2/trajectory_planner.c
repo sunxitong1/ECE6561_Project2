@@ -26,9 +26,9 @@ Semaphore_Handle pathSemHandle;
 motorControlMsg_t localMotorControlMsg;
 IArg mutexKey;
 
-int8_t   bias = 0;
+uint16_t   bias = 50;
 uint16_t   biasToggle = 0;
-uint16_t   velocity= 100;
+uint16_t   velocity= 20;
 double   angle = 0.;
 double   rad = 0.;
 #define pi 3.1415;
@@ -53,16 +53,16 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
     while(1) {
         Semaphore_pend(pathSemHandle, BIOS_WAIT_FOREVER);
 
-/*         Update Bias value
-        if( bias == -100 ) {
+        /* Update Bias value */
+        if( bias == 0 ) {
             biasToggle = 1;
         }
         if( biasToggle == 0 ) {
-            bias = bias-10;
+            bias = bias-5;
         }
         else {
-            bias = bias+10;
-        }*/
+            bias = bias+5;
+        }
         rad = atan(3./4.);
         angle = rad*180.0/pi;
 

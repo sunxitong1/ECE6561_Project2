@@ -20,16 +20,8 @@
 
 #include "motor_control.h"
 #include "comms.h"
-#include <math.h>
 
 #define PWM_PERIOD_VALUE    3000
-#define WHEELCIRC_MM 185     // wheel circumference in mm
-#define WHEELBASE_MM 104     // wheel base in mm
-
-int8_t encTicksL, encTicksR = 0;          //stores most recent encoder count
-int8_t pastEncTicksL, pastEncTicksR = 0;  //stores previous encoder count
-int8_t leftWheelDist, rightWheelDist, centerWheelDist, totalWheelDist = 0;
-int8_t RadPos, DegPos, xPos, yPos;
 
 MSP_EXP432P401R_PWMName pwmNames[2] = { Board_PWM0, Board_PWM1 };
 
@@ -46,7 +38,6 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	PWM_Params pwmParams[NUM_MOTORS];
 	uint16_t   duty[NUM_MOTORS];
 	int i;
-
 
 	motorControlMsg_t localMotorControlMsg;
 	motorMeasMsg_t    localMotorMeasMsg;
@@ -95,28 +86,6 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 			}
 			PWM_setDuty(pwm[i], duty[i]);
 		}
-
-		//This block of code is being used to handle the odometry
-		pastEncTicksL = encTicksL;
-		pastEncTicksR = encTicksR;
-		encTicksL = motorMeasMsg.leftV;
-		encTicksR = motorMeasMsg.rightV;
-
-		leftWheelDist = (encTicksL-pastEncTicksL) * WHEELCIRC_MM / 36;
-		rightWheelDist = (encTicksR-pastEncTicksR) * WHEELCIRC_MM / 36;
-		centerWheelDist = (leftWheelDist+rightWheelDist)/2;
-
-        RadPos += (leftWheelDist - rightWheelDist);
-
-        DegPos = (RadPos*573/(100*WHEELBASE_MM))%360;
-        if(DegPos<0) {
-            DegPos+=360;
-        }
-
-        totalWheelDist += centerWheelDist;
-
-        xPos += centerWheelDist * cos(DegPos) /10;
-        yPos += centerWheelDist * sin(DegPos) /10;
 	}
 
 }
