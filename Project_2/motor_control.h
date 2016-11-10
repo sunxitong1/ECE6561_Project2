@@ -14,8 +14,8 @@ typedef struct {
 } motorControlMsg_t;
 
 typedef struct {
-  uint32_t leftV;
-  uint32_t rightV;
+  float leftV;
+  float rightV;
 } motorMeasMsg_t;
 
 #define NUM_MOTORS	2

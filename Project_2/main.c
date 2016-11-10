@@ -54,12 +54,17 @@
 /* Application Includes */
 #include "motor_control.h"
 #include "sensor_suite.h"
+<<<<<<< HEAD
 #include "trajectory_planner.h"
+=======
+#include "odometryDefs.h"
+>>>>>>> odometry
 
-#define SAMPLING_RATE_US	50000
-#define PATHING_PERIOD_US	500000
+#define HEARTBEAT_TASK_PRIO      3
+#define MOTORCONTROL_TASK_PRIO   3
+#define SENSORSUITE_TASK_PRIO    3
 
-#define TASKSTACKSIZE   	512
+#define TASKSTACKSIZE            512
 
 
 Task_Struct task0Struct;
@@ -150,6 +155,7 @@ int main(void)
     taskParams.arg0 = 1000;
     taskParams.stackSize = TASKSTACKSIZE;
     taskParams.stack = &task0Stack;
+    taskParams.priority = HEARTBEAT_TASK_PRIO;
     Task_construct(&task0Struct, (Task_FuncPtr)heartBeatFxn, &taskParams, NULL);
 
     /* Construct motor control Task  thread */
@@ -157,14 +163,16 @@ int main(void)
     taskParams.arg0 = (UArg) motorSemHandle;
     taskParams.stackSize = TASKSTACKSIZE;
     taskParams.stack = &task1Stack;
+    taskParams.priority = MOTORCONTROL_TASK_PRIO;
     Task_construct(&task1Struct, (Task_FuncPtr)tMotorControl, &taskParams, NULL);
 
     /* Construct sensor suite Task  thread */
 	Task_Params_init(&taskParams);
 	taskParams.arg0 = (UArg) SampSemHandle;
-	taskParams.stackSize = TASKSTACKSIZE;
+	taskParams.stackSize = TASKSTACKSIZE*2; // This has a lot of variables, so double stack
 	taskParams.stack = &task2Stack;
-	Task_construct(&task2Struct, (Task_FuncPtr)tSensorSuite, &taskParams, NULL);
+    taskParams.priority = SENSORSUITE_TASK_PRIO;
+    Task_construct(&task2Struct, (Task_FuncPtr)tSensorSuite, &taskParams, NULL);
 
     /* Construct trajectory planner Task  thread */
 	Task_Params_init(&taskParams);
@@ -175,10 +183,10 @@ int main(void)
 
 	/* Construct clock for sampling period release */
 	Clock_Params_init(&clkParams);
-	clkParams.period = SAMPLING_RATE_US/Clock_tickPeriod;
+	clkParams.period = SAMPLING_PERIOD_US/Clock_tickPeriod;
 	clkParams.startFlag = TRUE;
 	Clock_construct(&clk0Struct, (Clock_FuncPtr)clk0Fxn,
-			SAMPLING_RATE_US/Clock_tickPeriod, &clkParams);
+			SAMPLING_PERIOD_US/Clock_tickPeriod, &clkParams);
 
 	/* Construct clock for sampling period release */
 	Clock_Params_init(&clkParams);

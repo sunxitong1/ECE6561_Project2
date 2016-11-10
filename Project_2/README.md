@@ -1,19 +1,26 @@
-## Example Summary
+## Project Summary
 
-This example is intended to be a starting point for new development where
-a fuller set of kernel features and debug capabilities are enabled.
+This project is meant to drive two DC-motors controlled by PWMs
+based on a planned trajectory.
 
 ## Peripherals Exercised
 
-* `Board_LED0`  - Indicates that the board was initialized within `main()`
+* `Board_LED0`  - Blinks to indicate RTOS still running.
+* `Board_PWM0`  - Operates the first of two motors
+* `Board_PWM1`  - Operates the second of two motors
 
-## Example Usage
+## Tasks
 
-* The example lights `Board_LED0` as part of the initialization in `main()`.
-Then a heartBeat task toggles the LED at a rate determined by the `arg0`
-parameter for the constructed Task instance in the .c file.
+* `heartBeatFxn`   - Indicates board still alive
+* `tMotorControl`  - Manages motor outputs
+* `tSensorSuite`   - Handles input data from sensors
 
-## Application Design Details
+## Usage
+
+* The example blinks `Board_LED0` using the `heartBeatFxn`. The PWMs are
+updated at the rate of `heartBeatFxn` and increase asymmetrically.
+
+## RTOS Configuration Details
 
 This examples is the same as the __Empty_Minimal__ example except many
 development and debug features are enabled. For example:
