@@ -74,6 +74,8 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 //	int32_t angle_left, angle_right;
 	int32_t vel_left_old, vel_right_old;
 
+	int i = 0;
+
 	if( arg0 == NULL ) {
 		System_abort("Sampling semaphore NULL!");
 	}
@@ -123,8 +125,12 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		/* Update motor Controller with measurements */
 		motorMeasurementMsgSend( vel_left, vel_right);
 
-		/* Update trajectory planner with measurements */
-		//trajectoryMeasMsgSend( Xpos, Ypos, DistT, DegPos );
+		/* Update trajectory planner with measurements  every 10 loops*/
+		++i;
+		if( i == 10 ) {
+			i = 0;
+			trajectoryMeasMsgSend( Xpos, Ypos, DistT, DegPos );
+		}
 
 
 	}

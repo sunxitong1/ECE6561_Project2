@@ -21,9 +21,8 @@
 /* TI-RTOS Header files */
 #include <ti/drivers/GPIO.h>
 
-Semaphore_Handle pathSemHandle;
-
-motorControlMsg_t localMotorControlMsg;
+trajectoryMeasMsg_t  localTrajectoryMeasMsg;
+motorControlMsg_t    localMotorControlMsg;
 IArg mutexKey;
 
 int8_t   bias = 0;
@@ -40,18 +39,10 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
         System_abort("Sampling semaphore NULL!");
     }
 
-    //    sensorSuiteStarted = true;
-    pathSemHandle = (Semaphore_Handle) arg0;
-    /* Block and receive changes from ? */
-    Semaphore_pend(motorSemHandle, BIOS_WAIT_FOREVER);
-
-    /* Update Motor Object */
-    /*mutexKey = GateMutex_enter(commMotorObjectMutex);
-    localCommMotorObject = commMotorObject;
-    GateMutex_leave(commMotorObjectMutex, mutexKey);*/
-
     while(1) {
-        Semaphore_pend(pathSemHandle, BIOS_WAIT_FOREVER);
+    	if( trajectoryMeasMsgRead( &localTrajectoryMeasMsg ) != TRUE ){
+    		; // WE DONE BROKE!
+    	}
 
 /*         Update Bias value
         if( bias == -100 ) {
@@ -71,7 +62,7 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
         commMotorObject.bias = bias;     // Should be 0-100
         GateMutex_leave(commMotorObjectMutex, mutexKey);*/
 
-        /* This is the new call! */
+        /* Send updated info to motor control */
         motorControlMsgSend( velocity, bias);
     }
 }

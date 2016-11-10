@@ -54,11 +54,8 @@
 /* Application Includes */
 #include "motor_control.h"
 #include "sensor_suite.h"
-<<<<<<< HEAD
 #include "trajectory_planner.h"
-=======
 #include "odometryDefs.h"
->>>>>>> odometry
 
 #define HEARTBEAT_TASK_PRIO      3
 #define MOTORCONTROL_TASK_PRIO   3
@@ -96,7 +93,7 @@ GateMutex_Handle       motorControlMsgMutex;
 GateMutex_Struct       motorControlMsgMutexStruct;
 
 
-//extern trajectoryMeasMsg_t    trajectoryMeasMsg; //TODO: WHAT SHOULD THIS BE?
+trajectoryMeasMsg_t    trajectoryMeasMsg;
 GateMutex_Handle       trajectoryMsgMutex;
 GateMutex_Struct       trajectoryMsgMutexStruct;
 Semaphore_Handle       pathSemHandle;
@@ -241,6 +238,7 @@ Void clk0Fxn(UArg arg0)
 Void clk1Fxn(UArg arg0)
 {
 
-    Semaphore_post(pathSemHandle);
+    //Semaphore_post(pathSemHandle);
+	;
 
 }

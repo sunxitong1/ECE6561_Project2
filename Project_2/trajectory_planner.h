@@ -8,6 +8,12 @@
 #ifndef TRAJECTORY_PLANNER_H_
 #define TRAJECTORY_PLANNER_H_
 
+typedef struct {
+	int32_t xPos;
+	int32_t yPos;
+	int32_t distT;
+	float   degPos;
+} trajectoryMeasMsg_t;
 
 
 Void tTrajectoryPlanner(UArg arg0, UArg arg1);
