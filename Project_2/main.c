@@ -62,10 +62,11 @@
 #define SENSORSUITE_TASK_PRIO    3
 
 #define TASKSTACKSIZE            512
-#define HEARTBEATSTACKSIZE       256
-#define SENSORSSTACKSIZE         1024
+#define HEARTBEATSTACKSIZE       512
+#define SENSORSSTACKSIZE         1536
 #define MOTORCONTROLSTACKSIZE    1536
 #define TRAJECTORYSTACKSIZE      512
+
 
 
 Task_Struct task0Struct;
