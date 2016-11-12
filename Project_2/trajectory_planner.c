@@ -34,6 +34,7 @@ extern int      tIndex;
 
 #define PI 3.1415
 
+#define PLOTCOUNT 12
 
 trajectoryMeasMsg_t  localTrajectoryMeasMsg;
 motorControlMsg_t    localMotorControlMsg;
@@ -44,7 +45,7 @@ int32_t   yArray[200];
 int32_t   tArray[200];
 float     dArray[200];
 
-point_t   plot[10];
+point_t   plot[PLOTCOUNT];
 
 int8_t   bias = 0;
 uint16_t   biasToggle = 0;
@@ -55,24 +56,40 @@ double   rad = 0.;
 Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
 
 	float i;
-	int j = 0;
+	int j;
+	int plotIndex;
+
+	int32_t deltaX, deltaY, deltaD;
+	float    deltaDeg, deltaDegDeg;
 
     if( arg0 == NULL ) {
         System_abort("Sampling semaphore NULL!");
     }
 
-    i = 0.;
 
-    for( j = 0; j<10; j++) {
-        plot[j].x = j * 400;
-        plot[j].y = 400 * sinf((float) j * 400.);
+
+    for( j = 0; j<PLOTCOUNT; j++) {
+        plot[j].x = j * 4000 * PI / 10;
+        plot[j].y = 4000 * sinf((float) j * PI/10.);
     }
 
+    i = 0.;
     j = 0;
+    plotIndex = 0;
 
     while(1) {
     	if( trajectoryMeasMsgRead( &localTrajectoryMeasMsg ) != TRUE ){
     		; // WE DONE BROKE!
+    	}
+
+    	deltaX = plot[plotIndex].x - localTrajectoryMeasMsg.xPos;
+    	deltaY = plot[plotIndex].y - localTrajectoryMeasMsg.yPos;
+
+    	if(deltaX < 100 && deltaY < 100 && plotIndex < PLOTCOUNT) {
+    	    plotIndex++;
+    	}
+    	else if ( plotIndex == PLOTCOUNT) {
+    	    ; // SHUT HER DOWN;
     	}
 
 #ifdef METRICS
@@ -85,6 +102,22 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
             tArray[j] = localTrajectoryMeasMsg.distT;
             dArray[j] = localTrajectoryMeasMsg.degPos;
             j++;
+    	}
+
+
+    	deltaD = sqrtf(powf((float) deltaX, 2.) + powf((float) deltaY, 2.));
+    	deltaDeg = atanf((float) deltaX / (float) deltaY)*180 / PI;
+
+    	deltaDegDeg = fmodf(deltaDeg - localTrajectoryMeasMsg.degPos, 360.);
+
+
+    	if ( deltaDegDeg < 180 ) {
+    	    bias = -1 * (deltaDegDeg / 180) * 100;
+    	    velocity = ((deltaDegDeg / 180) * 20) + 10;
+    	}
+    	else {
+    	    bias =  ((deltaDegDeg-180) / 180) * 10;
+    	    velocity = (((deltaDegDeg-180) / 180) * 20) + 10;
     	}
         //bias = sinf(i/2.)*20.;
         //i += 0.15;

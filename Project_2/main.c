@@ -263,8 +263,8 @@ Void clk1Fxn(UArg arg0)
 {
 #ifdef METRICS
     //Semaphore_post( motorSemHandle );
-    //Semaphore_post( pathSemHandle );
-    Semaphore_post(SampSemHandle);
+    Semaphore_post( pathSemHandle );
+    //Semaphore_post(SampSemHandle);
 #endif
 
 }
