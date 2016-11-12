@@ -48,6 +48,8 @@
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/PWM.h>
 
+#include <timer32.h>
+
 /* Board Header file */
 #include "Board.h"
 
@@ -118,10 +120,17 @@ int main(void)
     Semaphore_Params semParams;
     Clock_Params clkParams;
 
+    uint32_t t0,t1;
+
     /* Call board init functions */
-    Board_initGeneral()  ;
+    Board_initGeneral();
     Board_initGPIO();
     Board_initPWM();
+
+    Timer32_initModule((uint32_t) TIMER32_0_BASE, TIMER32_PRESCALER_1, TIMER32_32BIT, TIMER32_FREE_RUN_MODE);
+    Timer32_startTimer((uint32_t) TIMER32_0_BASE, false);
+
+    t0 = Timer32_getValue(TIMER32_0_BASE);
 
     /* Install Encoder callbacks */
     GPIO_setCallback(Motor_Encoder_0, motorEncIntHandler0);
@@ -204,6 +213,8 @@ int main(void)
                   "Halt the target to view any SysMin contents in ROV.\n");
     /* SysMin will only print to the console when you call flush or exit */
     System_flush();
+
+    t1 = Timer32_getValue(TIMER32_0_BASE);
 
     /* Start BIOS */
     BIOS_start();

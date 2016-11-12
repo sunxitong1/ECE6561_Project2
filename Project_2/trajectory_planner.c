@@ -23,18 +23,24 @@
 
 trajectoryMeasMsg_t  localTrajectoryMeasMsg;
 motorControlMsg_t    localMotorControlMsg;
+//trajectoryMeasMsg_t  logarray[200];
+int32_t   xArray[200];
+int32_t   yArray[200];
+int32_t   tArray[200];
+float     dArray[200];
 IArg mutexKey;
 
 int8_t   bias = 0;
 uint16_t   biasToggle = 0;
-uint16_t   velocity = 60;
+uint16_t   velocity = 40;
 double   angle = 0.;
 double   rad = 0.;
-#define pi 3.1415;
+#define pi 3.1415
 
 Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
 
 	float i;
+	int j = 0;
 
     if( arg0 == NULL ) {
         System_abort("Sampling semaphore NULL!");
@@ -46,9 +52,14 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
     	if( trajectoryMeasMsgRead( &localTrajectoryMeasMsg ) != TRUE ){
     		; // WE DONE BROKE!
     	}
-
+    	if(j < 200 ) {
+            xArray[j] = localTrajectoryMeasMsg.xPos;
+            yArray[j] = localTrajectoryMeasMsg.yPos;
+            tArray[j] = localTrajectoryMeasMsg.distT;
+            dArray[j] = localTrajectoryMeasMsg.degPos;
+            j++;
+    	}
         bias = sinf(i/2.)*20.;
-
         i += 0.15;
 
         /* Send updated info to motor control */

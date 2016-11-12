@@ -27,6 +27,8 @@
 #include "comms.h"
 #include "odometryDefs.h"
 
+#define pi 3.1415
+
 bool		sensorSuiteStarted = false;
 uint32_t	enc0TickCount = 0;
 uint32_t	enc1TickCount = 0;
@@ -100,24 +102,26 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		CountR = enc1TickCount;
 
 		/* Estimate distance traveled per wheel */
-		DistL = (CountL-pCountL) * WHEELCIRC_MM / 36;  // DistL mm*10 (tenths of millimeters)
-		DistR = (CountR-pCountR) * WHEELCIRC_MM / 36;  // DistR mm*10
+		DistL = (CountL-pCountL) * WHEELCIRC_MM / 36.;  // DistL mm*10 (tenths of millimeters)
+		DistR = (CountR-pCountR) * WHEELCIRC_MM / 36.;  // DistR mm*10
 		DistC = (DistL+DistR)/2;                       // DistC mm*10
 
 		/* Skip everything if distance traveled sample is bad */
 		if( DistL > TOO_MUCH_DISTANCE || DistL > TOO_MUCH_DISTANCE ) continue;
 
 		/* Calculate the angle in radians? */
-		RadPos += (DistL - DistR); // /(WHEELBASE_MM); // Rad xWHEELBASE TODO: WAT
+		RadPos = (DistR - DistL); // /(WHEELBASE_MM); // Rad xWHEELBASE TODO: WAT
 
 		/* Calculate the angle in degrees through magic */
-		DegPos = fmodf((RadPos * 573.0f) / (100.0f * WHEELBASE_MM), 360.0f);  // Deg
+		//DegPos = fmodf((RadPos * 573.0f) / (100.0f * WHEELBASE_MM), 360.0f);  // Deg
+		DegPos += 180.0*RadPos/(pi*WHEELBASE_MM*10.);
+		DegPos = fmodf(DegPos, 360.0);
 		if(DegPos<0) DegPos += 360.0f;
 
 		DistT += DistC;                                // Total distance
 
-		Xpos += DistC * cosf(DegPos) /10.0f;               // Xpos mm*10
-		Ypos += DistC * sinf(DegPos) /10.0f;               // Ypos mm*10
+		Xpos += DistC * cosf(DegPos*pi/180); //10.0f;               // Xpos mm*10
+		Ypos += DistC * sinf(DegPos*pi/180);//10.0f;               // Ypos mm*10
 
 		/* Get velocity in mm/s, (.010 m) / us  */
 		vel_left = (float) DistL / ( SAMPLING_PERIOD_US / 100000. );

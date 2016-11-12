@@ -8,8 +8,8 @@
 #ifndef ODOMETRYDEFS_H_
 #define ODOMETRYDEFS_H_
 
-#define WHEELCIRC_MM       185
-#define WHEELBASE_MM       104
+#define WHEELCIRC_MM       180.
+#define WHEELBASE_MM       110.
 #define TOO_MUCH_DISTANCE  1000
 
 #define SAMPLING_PERIOD_US	50000
