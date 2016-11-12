@@ -24,10 +24,10 @@
 
 #define PWM_PERIOD_VALUE    3000
 
-#define Ki_num  1       // integral gain numerator
-#define Ki_den  1       // integral gain denominator
-#define Kp_num  1       // proportional gain numerator
-#define Kp_den  1       // proportional gain denominator
+#define Ki_num  1.       // integral gain numerator
+#define Ki_den  1.       // integral gain denominator
+#define Kp_num  1.       // proportional gain numerator
+#define Kp_den  1.       // proportional gain denominator
 
 MSP_EXP432P401R_PWMName pwmNames[2] = { Board_PWM0, Board_PWM1 };
 
@@ -57,6 +57,12 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 	
 	localMotorControlMsg.desiredV = 1000;
 	localMotorControlMsg.bias = 0;
+
+	e_l = 0; e_r = 0; e_b = 0;
+	e_l_i = 0; e_r_i = 0;
+	u_b_last = 0; e_b_last = 0;
+	u_l = 0; u_r = 0;
+	u_b = 0;
 
 	/* Initialize pwms */
 	for( i = 0; i < NUM_MOTORS; i++ ) {
@@ -93,14 +99,17 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		e_r = (localMotorControlMsg.desiredV - localMotorMeasMsg.rightV) + u_b;
 		e_l_i += e_l;
 		e_r_i += e_r;
-		u_l = Kp_num * (e_l + e_l_i/3) / Kp_den;
-		u_r = Kp_num * (e_r + e_r_i/3) / Kp_den;
+		u_l = Kp_num * (e_l + e_l_i/3.) / Kp_den;
+		u_r = Kp_num * (e_r + e_r_i/3.) / Kp_den;
 
 		// saturate to +/- 100
 		if ( u_l > 100) u_l = 100;
-		else if ( u_l < -100) u_l = -100;
+		else if ( u_l < 0) u_l = 0;
 		if ( u_r > 100) u_r = 100;
-		else if ( u_r < -100) u_r = -100;
+		else if ( u_r < 0) u_r = 0;
+
+		if ( u_b > 100) u_b = 100;
+		else if ( u_b < -100) u_b = -100;
 
 		u_b_last = u_b;
 		e_b_last = e_b;
@@ -110,12 +119,14 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		/* Bias proportion is (100+bias)/2 or (100-bias)/2 */
 		for( i = 0; i < NUM_MOTORS; i++ ) {
 			if (i == 0) {
-				// Left motor?
-				duty[i] = ((localMotorControlMsg.desiredV * PWM_PERIOD_VALUE/100)*(100+localMotorControlMsg.bias))/200;
+				// Right motor?
+				//duty[i] = ((localMotorControlMsg.desiredV * PWM_PERIOD_VALUE/100)*(100+localMotorControlMsg.bias))/200;
+				duty[i] = (u_r * PWM_PERIOD_VALUE/100);
 			}
 			else {
-				// Right motor?
-				duty[i] = ((localMotorControlMsg.desiredV * PWM_PERIOD_VALUE/100)*(100-localMotorControlMsg.bias))/200;
+				// Left motor?
+				//duty[i] = ((localMotorControlMsg.desiredV * PWM_PERIOD_VALUE/100)*(100-localMotorControlMsg.bias))/200;
+				duty[i] = (u_l * PWM_PERIOD_VALUE/100);
 			}
 			PWM_setDuty(pwm[i], duty[i]);
 		}

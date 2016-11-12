@@ -86,6 +86,7 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 	pCountL = 0; pCountR = 0;
 	DistL = 0; DistR = 0; DistC = 0;
 	Xpos = 0; Ypos = 0; DistT = 0;
+	DegPos = 0.0; RadPos = 0.0;
 
 	while(1) {
 		Semaphore_pend(SampSemHandle, BIOS_WAIT_FOREVER);
