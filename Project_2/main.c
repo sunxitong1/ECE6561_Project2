@@ -54,6 +54,7 @@
 /* Application Includes */
 #include "motor_control.h"
 #include "sensor_suite.h"
+#include "trajectory_planner.h"
 #include "odometryDefs.h"
 
 #define HEARTBEAT_TASK_PRIO      3
@@ -61,16 +62,20 @@
 #define SENSORSUITE_TASK_PRIO    3
 
 #define TASKSTACKSIZE            512
+#define HEARTBEATSTACKSIZE       256
+#define SENSORSSTACKSIZE         1024
+#define MOTORCONTROLSTACKSIZE    1536
+#define TRAJECTORYSTACKSIZE      512
 
 
 Task_Struct task0Struct;
 Task_Struct task1Struct;
 Task_Struct task2Struct;
 Task_Struct task3Struct;
-Char task0Stack[TASKSTACKSIZE];
-Char task1Stack[TASKSTACKSIZE];
-Char task2Stack[TASKSTACKSIZE];
-Char task3Stack[TASKSTACKSIZE];
+Char task0Stack[HEARTBEATSTACKSIZE];
+Char task1Stack[SENSORSSTACKSIZE];
+Char task2Stack[MOTORCONTROLSTACKSIZE];
+Char task3Stack[TRAJECTORYSTACKSIZE];
 
 Semaphore_Struct motorSemStruct;
 Semaphore_Handle motorSemHandle;
@@ -92,7 +97,7 @@ GateMutex_Handle       motorControlMsgMutex;
 GateMutex_Struct       motorControlMsgMutexStruct;
 
 
-//extern trajectoryMeasMsg_t    trajectoryMeasMsg; //TODO: WHAT SHOULD THIS BE?
+trajectoryMeasMsg_t    trajectoryMeasMsg;
 GateMutex_Handle       trajectoryMsgMutex;
 GateMutex_Struct       trajectoryMsgMutexStruct;
 Semaphore_Handle       pathSemHandle;
@@ -113,7 +118,7 @@ int main(void)
     Clock_Params clkParams;
 
     /* Call board init functions */
-    Board_initGeneral();
+    Board_initGeneral()  ;
     Board_initGPIO();
     Board_initPWM();
 
@@ -149,7 +154,7 @@ int main(void)
     /* Construct heartBeat Task  thread */
     Task_Params_init(&taskParams);
     taskParams.arg0 = 1000;
-    taskParams.stackSize = TASKSTACKSIZE;
+    taskParams.stackSize = HEARTBEATSTACKSIZE;
     taskParams.stack = &task0Stack;
     taskParams.priority = HEARTBEAT_TASK_PRIO;
     Task_construct(&task0Struct, (Task_FuncPtr)heartBeatFxn, &taskParams, NULL);
@@ -157,7 +162,7 @@ int main(void)
     /* Construct motor control Task  thread */
     Task_Params_init(&taskParams);
     taskParams.arg0 = (UArg) motorSemHandle;
-    taskParams.stackSize = TASKSTACKSIZE;
+    taskParams.stackSize = MOTORCONTROLSTACKSIZE;
     taskParams.stack = &task1Stack;
     taskParams.priority = MOTORCONTROL_TASK_PRIO;
     Task_construct(&task1Struct, (Task_FuncPtr)tMotorControl, &taskParams, NULL);
@@ -165,10 +170,17 @@ int main(void)
     /* Construct sensor suite Task  thread */
 	Task_Params_init(&taskParams);
 	taskParams.arg0 = (UArg) SampSemHandle;
-	taskParams.stackSize = TASKSTACKSIZE*2; // This has a lot of variables, so double stack
+	taskParams.stackSize = SENSORSSTACKSIZE;
 	taskParams.stack = &task2Stack;
     taskParams.priority = SENSORSUITE_TASK_PRIO;
     Task_construct(&task2Struct, (Task_FuncPtr)tSensorSuite, &taskParams, NULL);
+
+    /* Construct trajectory planner Task  thread */
+	Task_Params_init(&taskParams);
+	taskParams.arg0 = (UArg) pathSemHandle;
+	taskParams.stackSize = TRAJECTORYSTACKSIZE;
+	taskParams.stack = &task3Stack;
+	Task_construct(&task3Struct, (Task_FuncPtr)tTrajectoryPlanner, &taskParams, NULL);
 
 	/* Construct clock for sampling period release */
 	Clock_Params_init(&clkParams);
@@ -230,6 +242,7 @@ Void clk0Fxn(UArg arg0)
 Void clk1Fxn(UArg arg0)
 {
 
-    Semaphore_post(pathSemHandle);
+    //Semaphore_post(pathSemHandle);
+	;
 
 }
