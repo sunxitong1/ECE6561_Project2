@@ -120,15 +120,15 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		Ypos += DistC * sinf(DegPos) /10.0f;               // Ypos mm*10
 
 		/* Get velocity in mm/s, (.010 m) / us  */
-		vel_left = (float) DistL / ( SAMPLING_PERIOD_US / 10000. );
-		vel_right = (float) DistR / ( SAMPLING_PERIOD_US / 10000. );
+		vel_left = (float) DistL / ( SAMPLING_PERIOD_US / 100000. );
+		vel_right = (float) DistR / ( SAMPLING_PERIOD_US / 100000. );
 
 		/* Update motor Controller with measurements */
 		motorMeasurementMsgSend( vel_left, vel_right);
 
 		/* Update trajectory planner with measurements  every 10 loops*/
 		++i;
-		if( i == 10 ) {
+		if( i == 5 ) {
 			i = 0;
 			trajectoryMeasMsgSend( Xpos, Ypos, DistT, DegPos );
 		}

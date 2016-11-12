@@ -26,8 +26,7 @@
 
 #define Ki_num  1.       // integral gain numerator
 #define Ki_den  1.       // integral gain denominator
-#define Kp_num  1.       // proportional gain numerator
-#define Kp_den  1.       // proportional gain denominator
+#define Kp      0.5       // proportional gain numerator
 
 MSP_EXP432P401R_PWMName pwmNames[2] = { Board_PWM0, Board_PWM1 };
 
@@ -99,8 +98,8 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		e_r = (localMotorControlMsg.desiredV - localMotorMeasMsg.rightV) + u_b;
 		e_l_i += e_l;
 		e_r_i += e_r;
-		u_l = Kp_num * (e_l + e_l_i/3.) / Kp_den;
-		u_r = Kp_num * (e_r + e_r_i/3.) / Kp_den;
+		u_l = Kp * (e_l + e_l_i/3.);
+		u_r = Kp * (e_r + e_r_i/3.);
 
 		// saturate to +/- 100
 		if ( u_l > 100) u_l = 100;
