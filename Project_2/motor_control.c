@@ -16,11 +16,21 @@
 
 #include <ti/drivers/PWM.h>
 
+#include <timer32.h>
+
 #include "Board.h"
 
 #include "motor_control.h"
 #include "comms.h"
 #include "odometryDefs.h"
+
+#ifdef METRICS
+#define METRICS_PERIOD  100000
+extern uint32_t t0,t1;
+extern uint32_t tMeas[1000];
+extern int      tIndex;
+#endif
+
 
 #define PWM_PERIOD_VALUE    3000
 
@@ -85,6 +95,10 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		/* Block and receive changes from Sensor Suite via Motor Measurement Message */
 		motorMeasurementMsgRead( &localMotorMeasMsg );
 
+#ifdef METRICS
+	    t0 = Timer32_getValue(TIMER32_0_BASE);
+#endif
+
 		motorControlMsgRead( &localMotorControlMsg );
 		
 		/* Check inputs */		
@@ -129,16 +143,11 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 			}
 			PWM_setDuty(pwm[i], duty[i]);
 		}
+
+#ifdef METRICS
+        t1 = Timer32_getValue(TIMER32_0_BASE);
+        tMeas[tIndex++]  = t0-t1;
+#endif
 	}
 
 }
-
-/* Example for updating the motor values:
-	
-	#include "comms.h"
-
-	mutexKey = GateMutex_enter(commMotorObjectMutex);
-	commMotorObject.desiredV = 50; // Should be 0-100
-	commMotorObject.bias = 50;     // Should be -100 - 100
-	GateMutex_leave(commMotorObjectMutex, mutexKey);
-*/

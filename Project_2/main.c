@@ -110,6 +110,12 @@ GateMutex_Handle       motorMeasMsgMutex;
 GateMutex_Struct       motorMeasMsgMutexStruct;
 Semaphore_Handle       motorSemHandle;
 
+#ifdef METRICS
+#define METRICS_PERIOD  100000
+uint32_t t0,t1;
+uint32_t tMeas[1000];
+int      tIndex = 0;
+#endif
 
 /*
  *  ======== main ========
@@ -120,7 +126,6 @@ int main(void)
     Semaphore_Params semParams;
     Clock_Params clkParams;
 
-    uint32_t t0,t1;
 
     /* Call board init functions */
     Board_initGeneral();
@@ -130,7 +135,6 @@ int main(void)
     Timer32_initModule((uint32_t) TIMER32_0_BASE, TIMER32_PRESCALER_1, TIMER32_32BIT, TIMER32_FREE_RUN_MODE);
     Timer32_startTimer((uint32_t) TIMER32_0_BASE, false);
 
-    t0 = Timer32_getValue(TIMER32_0_BASE);
 
     /* Install Encoder callbacks */
     GPIO_setCallback(Motor_Encoder_0, motorEncIntHandler0);
@@ -167,7 +171,9 @@ int main(void)
     taskParams.stackSize = HEARTBEATSTACKSIZE;
     taskParams.stack = &task0Stack;
     taskParams.priority = HEARTBEAT_TASK_PRIO;
+#ifndef METRICS
     Task_construct(&task0Struct, (Task_FuncPtr)heartBeatFxn, &taskParams, NULL);
+#endif
 
     /* Construct motor control Task  thread */
     Task_Params_init(&taskParams);
@@ -200,11 +206,13 @@ int main(void)
 			SAMPLING_PERIOD_US/Clock_tickPeriod, &clkParams);
 
 	/* Construct clock for sampling period release */
+#ifdef METRICS
 	Clock_Params_init(&clkParams);
-	clkParams.period = PATHING_PERIOD_US/Clock_tickPeriod;
+	clkParams.period = METRICS_PERIOD/Clock_tickPeriod;
 	clkParams.startFlag = TRUE;
 	Clock_construct(&clk1Struct, (Clock_FuncPtr)clk1Fxn,
-			PATHING_PERIOD_US/Clock_tickPeriod, &clkParams);
+			METRICS_PERIOD/Clock_tickPeriod, &clkParams);
+#endif
 
     /* Turn on user LED */
     GPIO_write(Board_LED0, Board_LED_ON);
@@ -214,7 +222,6 @@ int main(void)
     /* SysMin will only print to the console when you call flush or exit */
     System_flush();
 
-    t1 = Timer32_getValue(TIMER32_0_BASE);
 
     /* Start BIOS */
     BIOS_start();
@@ -243,8 +250,9 @@ Void heartBeatFxn(UArg arg0, UArg arg1)
  */
 Void clk0Fxn(UArg arg0)
 {
-
+#ifndef METRICS
     Semaphore_post(SampSemHandle);
+#endif
 
 }
 
@@ -253,8 +261,10 @@ Void clk0Fxn(UArg arg0)
  */
 Void clk1Fxn(UArg arg0)
 {
-
-    //Semaphore_post(pathSemHandle);
-	;
+#ifdef METRICS
+    //Semaphore_post( motorSemHandle );
+    //Semaphore_post( pathSemHandle );
+    Semaphore_post(SampSemHandle);
+#endif
 
 }

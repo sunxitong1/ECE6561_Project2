@@ -13,9 +13,10 @@
 #define TOO_MUCH_DISTANCE  1000
 
 #define SAMPLING_PERIOD_US	50000
-#define PATHING_PERIOD_US	500000
 
 #define A                  30      // something to do with overall gain on velocity
+
+#undef METRICS
 
 
 #endif /* ODOMETRYDEFS_H_ */

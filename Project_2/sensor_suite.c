@@ -20,6 +20,8 @@
 /* TI-RTOS Header files */
 #include <ti/drivers/GPIO.h>
 
+#include <timer32.h>
+
 /* Board Header file */
 #include "Board.h"
 
@@ -27,7 +29,15 @@
 #include "comms.h"
 #include "odometryDefs.h"
 
-#define pi 3.1415
+#ifdef METRICS
+#define METRICS_PERIOD  100000
+extern uint32_t t0,t1;
+extern uint32_t tMeas[1000];
+extern int      tIndex;
+#endif
+
+
+#define PI 3.1415
 
 bool		sensorSuiteStarted = false;
 uint32_t	enc0TickCount = 0;
@@ -95,6 +105,10 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 	while(1) {
 		Semaphore_pend(SampSemHandle, BIOS_WAIT_FOREVER);
 
+#ifdef METRICS
+        t0 = Timer32_getValue(TIMER32_0_BASE);
+#endif METRICS
+
 		/* Do sampling of sensor stuff */
 		pCountL = CountL;
 		pCountR = CountR;
@@ -114,28 +128,36 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 
 		/* Calculate the angle in degrees through magic */
 		//DegPos = fmodf((RadPos * 573.0f) / (100.0f * WHEELBASE_MM), 360.0f);  // Deg
-		DegPos += 180.0*RadPos/(pi*WHEELBASE_MM*10.);
+		DegPos += 180.0*RadPos/(PI*WHEELBASE_MM*10.);
 		DegPos = fmodf(DegPos, 360.0);
 		if(DegPos<0) DegPos += 360.0f;
 
 		DistT += DistC;                                // Total distance
 
-		Xpos += DistC * cosf(DegPos*pi/180); //10.0f;               // Xpos mm*10
-		Ypos += DistC * sinf(DegPos*pi/180);//10.0f;               // Ypos mm*10
+		Xpos += DistC * cosf(DegPos*PI/180); //10.0f;               // Xpos mm*10
+		Ypos += DistC * sinf(DegPos*PI/180);//10.0f;               // Ypos mm*10
 
 		/* Get velocity in mm/s, (.010 m) / us  */
 		vel_left = (float) DistL / ( SAMPLING_PERIOD_US / 100000. );
 		vel_right = (float) DistR / ( SAMPLING_PERIOD_US / 100000. );
 
 		/* Update motor Controller with measurements */
+#ifndef METRICS
 		motorMeasurementMsgSend( vel_left, vel_right);
+#endif
 
 		/* Update trajectory planner with measurements  every 10 loops*/
 		++i;
 		if( i == 5 ) {
 			i = 0;
+#ifndef METRICS
 			trajectoryMeasMsgSend( Xpos, Ypos, DistT, DegPos );
+#endif
 		}
+#ifdef METRICS
+        t1 = Timer32_getValue(TIMER32_0_BASE);
+        tMeas[tIndex++]  = t0-t1;;
+#endif
 
 
 	}

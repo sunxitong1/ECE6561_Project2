@@ -15,6 +15,11 @@ typedef struct {
 	float   degPos;
 } trajectoryMeasMsg_t;
 
+typedef struct {
+    int32_t x;
+    int32_t y;
+} point_t;
+
 
 Void tTrajectoryPlanner(UArg arg0, UArg arg1);
 

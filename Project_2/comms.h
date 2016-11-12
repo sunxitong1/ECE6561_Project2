@@ -27,6 +27,7 @@ extern motorMeasMsg_t         motorMeasMsg;
 extern GateMutex_Handle       motorMeasMsgMutex;
 extern Semaphore_Handle       motorSemHandle;
 
+
 /*
  * Function for updating the motor control variables.
  * No blocking semaphore for this control message.*/
