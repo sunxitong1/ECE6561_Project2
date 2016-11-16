@@ -11,14 +11,16 @@ based on a planned trajectory.
 
 ## Tasks
 
-* `heartBeatFxn`   - Indicates board still alive
-* `tMotorControl`  - Manages motor outputs
-* `tSensorSuite`   - Handles input data from sensors
+* `heartBeatFxn`         - Indicates board still alive
+* `tMotorControl`        - Manages motor outputs
+* `tSensorSuite`         - Handles input data from sensors
+* `tTrajectoryPlanner`   - Plans trajectories and updates motor control
 
 ## Usage
 
-* The example blinks `Board_LED0` using the `heartBeatFxn`. The PWMs are
-updated at the rate of `heartBeatFxn` and increase asymmetrically.
+* The application blinks `Board_LED0` using the `heartBeatFxn`
+* The application controls the two PWM outputs to control Lego
+NXT motors using a biased differential steering control scheme.
 
 ## RTOS Configuration Details
 
