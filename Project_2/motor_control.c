@@ -20,14 +20,16 @@
 
 #include "Board.h"
 
+/* Application Includes*/
 #include "motor_control.h"
 #include "comms.h"
 #include "odometryDefs.h"
+#include "project_control.h"
+
 
 #ifdef METRICS
-#define METRICS_PERIOD  100000
-extern uint32_t t0,t1;
-extern uint32_t tMeas[1000];
+extern uint32_t mct0,mct1;
+extern uint32_t mctMeas[1000];
 extern int      tIndex;
 #endif
 
@@ -100,7 +102,7 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		motorMeasurementMsgRead( &localMotorMeasMsg );
 
 #ifdef METRICS
-	    t0 = Timer32_getValue(TIMER32_0_BASE);
+	    mct0 = Timer32_getValue(TIMER32_0_BASE);
 #endif
 
 		motorControlMsgRead( &localMotorControlMsg );
@@ -146,8 +148,8 @@ Void tMotorControl(UArg arg0, UArg arg1) {
 		}
 
 #ifdef METRICS
-        t1 = Timer32_getValue(TIMER32_0_BASE);
-        tMeas[tIndex++]  = t0-t1;
+        mct1 = Timer32_getValue(TIMER32_0_BASE);
+        mctMeas[tIndex++]  = mct0-mct1;
 #endif
 	}
 

@@ -58,6 +58,7 @@
 #include "sensor_suite.h"
 #include "trajectory_planner.h"
 #include "odometryDefs.h"
+#include "project_control.h"
 
 #define HEARTBEAT_TASK_PRIO      3
 #define MOTORCONTROL_TASK_PRIO   3
@@ -111,7 +112,6 @@ GateMutex_Struct       motorMeasMsgMutexStruct;
 Semaphore_Handle       motorSemHandle;
 
 #ifdef METRICS
-#define METRICS_PERIOD  100000
 uint32_t t0,t1;
 uint32_t tMeas[1000];
 int      tIndex = 0;
@@ -165,13 +165,13 @@ int main(void)
 	GateMutex_construct(&motorMeasMsgMutexStruct, NULL);
 	motorMeasMsgMutex = GateMutex_handle(&motorMeasMsgMutexStruct);
 
-    /* Construct heartBeat Task  thread */
+    /* Construct heartBeat Task  thread  (BUT NOT IF DOING METRICS)*/
+#ifndef METRICS
     Task_Params_init(&taskParams);
     taskParams.arg0 = 1000;
     taskParams.stackSize = HEARTBEATSTACKSIZE;
     taskParams.stack = &task0Stack;
     taskParams.priority = HEARTBEAT_TASK_PRIO;
-#ifndef METRICS
     Task_construct(&task0Struct, (Task_FuncPtr)heartBeatFxn, &taskParams, NULL);
 #endif
 

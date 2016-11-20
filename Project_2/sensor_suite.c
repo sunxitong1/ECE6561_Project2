@@ -25,14 +25,15 @@
 /* Board Header file */
 #include "Board.h"
 
+/* Application Includes*/
 #include "sensor_suite.h"
 #include "comms.h"
 #include "odometryDefs.h"
+#include "project_control.h"
 
 #ifdef METRICS
-#define METRICS_PERIOD  100000
-extern uint32_t t0,t1;
-extern uint32_t tMeas[1000];
+extern uint32_t sst0,sst1;
+extern uint32_t sstMeas[1000];
 extern int      tIndex;
 #endif
 
@@ -74,10 +75,7 @@ uint32_t getEncTickCount(int encNum) {
 // GetVel returns the current velocity using advanced mathematics.
 int32_t GetVel( float angle_old, float angle, int32_t vel_old)
 {
-//     int vel;
      return (A*200*(angle-angle_old)-(A-200)*vel_old)/(A+200);
-//     return vel;
-
 }
 
 Void tSensorSuite(UArg arg0, UArg arg1) {
@@ -112,7 +110,7 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 		Semaphore_pend(SampSemHandle, BIOS_WAIT_FOREVER);
 
 #ifdef METRICS
-        t0 = Timer32_getValue(TIMER32_0_BASE);
+        sst0 = Timer32_getValue(TIMER32_0_BASE);
 #endif /* METRICS */
 
 		/* Do sampling of sensor stuff */
@@ -161,8 +159,8 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 #endif
 		}
 #ifdef METRICS
-        t1 = Timer32_getValue(TIMER32_0_BASE);
-        tMeas[tIndex++]  = t0-t1;;
+        sst1 = Timer32_getValue(TIMER32_0_BASE);
+        sstMeas[tIndex++]  = sst0-sst1;;
 #endif
 
 

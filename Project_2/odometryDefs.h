@@ -16,7 +16,4 @@
 
 #define A                  30      // something to do with overall gain on velocity
 
-#undef METRICS
-
-
 #endif /* ODOMETRYDEFS_H_ */

@@ -22,13 +22,15 @@
 /* TI-RTOS Header files */
 #include <ti/drivers/GPIO.h>
 
+/* Application Includes*/
 #include "comms.h"
 #include "odometryDefs.h"
+#include "project_control.h"
+
 
 #ifdef METRICS
-#define METRICS_PERIOD  100000
-extern uint32_t t0,t1;
-extern uint32_t tMeas[1000];
+extern uint32_t tpt0,tpt1;
+extern uint32_t tptMeas[1000];
 extern int      tIndex;
 #endif
 
@@ -87,7 +89,7 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
     	}
 
 #ifdef METRICS
-        t0 = Timer32_getValue(TIMER32_0_BASE);
+    	tpt0 = Timer32_getValue(TIMER32_0_BASE);
 #endif
 
 #ifdef LOGGING
@@ -122,8 +124,8 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
         motorControlMsgSend( velocity, bias);
 
 #ifdef METRICS
-        t1 = Timer32_getValue(TIMER32_0_BASE);
-        tMeas[tIndex++]  = t0-t1;;
+        tpt1 = Timer32_getValue(TIMER32_0_BASE);
+        tptMeas[tIndex++]  = tpt0-tpt1;;
 #endif
 
     }
