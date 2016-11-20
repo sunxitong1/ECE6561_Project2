@@ -62,12 +62,6 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
 	int32_t deltaX, deltaY, deltaD;
 	float    deltaDeg, deltaDegDeg;
 
-    if( arg0 == NULL ) {
-        System_abort("Sampling semaphore NULL!");
-    }
-
-
-
     for( j = 0; j<PLOTCOUNT; j++) {
         plot[j].x = j * 4000 * PI / 10;
         plot[j].y = 4000 * sinf((float) j * PI/10.);
@@ -96,6 +90,8 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
         t0 = Timer32_getValue(TIMER32_0_BASE);
 #endif
 
+#ifdef LOGGING
+        /* Some logging for first 200 loops */
     	if(j < 200 ) {
             xArray[j] = localTrajectoryMeasMsg.xPos;
             yArray[j] = localTrajectoryMeasMsg.yPos;
@@ -103,10 +99,11 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
             dArray[j] = localTrajectoryMeasMsg.degPos;
             j++;
     	}
+#endif /* LOGGING */
 
 
     	deltaD = sqrtf(powf((float) deltaX, 2.) + powf((float) deltaY, 2.));
-    	deltaDeg = atanf((float) deltaX / (float) deltaY)*180 / PI;
+    	deltaDeg = atanf((float) deltaX / (float) deltaY)*180. / PI;
 
     	deltaDegDeg = fmodf(deltaDeg - localTrajectoryMeasMsg.degPos, 360.);
 
@@ -119,9 +116,6 @@ Void tTrajectoryPlanner(UArg arg0, UArg arg1) {
     	    bias =  ((deltaDegDeg-180) / 180) * 10;
     	    velocity = (((deltaDegDeg-180) / 180) * 20) + 10;
     	}
-        //bias = sinf(i/2.)*20.;
-        //i += 0.15;
-
 
 
         /* Send updated info to motor control */
