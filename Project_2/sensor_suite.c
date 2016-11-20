@@ -38,10 +38,10 @@ extern int      tIndex;
 
 
 #define PI 3.1415
+#define NUM_ENCODERS     2
 
 bool		sensorSuiteStarted = false;
-uint32_t	enc0TickCount = 0;
-uint32_t	enc1TickCount = 0;
+uint32_t	encTickCount[NUM_ENCODERS] = { 0, 0 };
 
 Semaphore_Handle SampSemHandle;
 
@@ -49,16 +49,25 @@ Semaphore_Handle SampSemHandle;
 void motorEncIntHandler0(unsigned int index)
 {
 	if(sensorSuiteStarted) {
-		enc0TickCount++;
+		encTickCount[0]++;
 	}
 }
 
 void motorEncIntHandler1(unsigned int index)
 {
 	if(sensorSuiteStarted) {
-		enc1TickCount++;
+		encTickCount[1]++;
 	}
 
+}
+
+uint32_t getEncTickCount(int encNum) {
+	if( encNum < NUM_ENCODERS) {
+		return encTickCount[encNum];
+	}
+	else {
+		return 0;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -82,9 +91,6 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 	float   DegPos, RadPos;            // Angle Position (in degrees / radians)
 
 	float vel_left, vel_right;        // left, right velocities
-//	int32_t angle_left_old,angle_right_old;
-//	int32_t angle_left, angle_right;
-	int32_t vel_left_old, vel_right_old;
 
 	int i = 0;
 
@@ -107,13 +113,13 @@ Void tSensorSuite(UArg arg0, UArg arg1) {
 
 #ifdef METRICS
         t0 = Timer32_getValue(TIMER32_0_BASE);
-#endif METRICS
+#endif /* METRICS */
 
 		/* Do sampling of sensor stuff */
 		pCountL = CountL;
 		pCountR = CountR;
-		CountL = enc0TickCount;
-		CountR = enc1TickCount;
+		CountL = getEncTickCount(0);
+		CountR = getEncTickCount(1);
 
 		/* Estimate distance traveled per wheel */
 		DistL = (CountL-pCountL) * WHEELCIRC_MM / 36.;  // DistL mm*10 (tenths of millimeters)
